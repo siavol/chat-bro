@@ -36,7 +36,7 @@ This plan outlines the implementation of a personal AI assistant accessible via 
 **Language/Version**: .NET 9
 **Primary Dependencies**: Aspire, Semantic Kernel, Telegram.Bot
 **Storage**: N/A
-**Testing**: xUnit
+**Testing**: xUnit and reqnroll
 **Target Platform**: Linux (Docker)
 **Project Type**: single
 **Performance Goals**: Should be within 20 seconds.
@@ -54,7 +54,8 @@ This plan outlines the implementation of a personal AI assistant accessible via 
 
 **Architecture**:
 - EVERY feature as library? Yes
-- Libraries listed: `ChatBro.App`, `ChatBro.Service`
+- Aspire Host project: `ChatBro.AspireHost`. Aspire host allows to run all services at once for development.
+- Libraries listed: `ChatBro.TelegramBotService`, `ChatBro.AIService`, `ChatBro.Restaurants`
 - CLI per library: N/A
 - Library docs: N/A
 
@@ -93,11 +94,15 @@ specs/001-build-a-personal/
 ```
 # Option 1: Single project (DEFAULT)
 src/
-├── ChatBro.App/
-├── ChatBro.Service/
+├── ChatBro.AspireHost/
+├── ChatBro.TelegramBotService/
+├── ChatBro.AIService/
+├── ChatBro.RestaurantsService/
 └── tests/
-    ├── ChatBro.App.Tests/
-    └── ChatBro.Service.Tests/
+    ├── ChatBro.End2EndTests/
+    ├── ChatBro.TelegramBotService.Tests/
+    ├── ChatBro.AIService.Tests/
+    ├── ChatBro.RestaurantsService.Tests/
 ```
 
 **Structure Decision**: Option 1
@@ -159,19 +164,21 @@ src/
 *This section describes what the /tasks command will do - DO NOT execute during /plan*
 
 **Task Generation Strategy**:
-- Create solution and project files for `ChatBro.App`, `ChatBro.Service`, and tests.
-- Implement the data models in `ChatBro.Service`.
-- Implement a `TelegramService` to handle bot interactions.
-- Implement a `RestaurantService` to fetch data from `lounaat.info`.
+- Create solution and project files for `ChatBro.AspireHost`, `ChatBro.TelegramBotService` and tests.
+- Implement the telegram data models in `ChatBro.TelegramBotService`.
+- Implement a `TelegramService` to handle bot interactions. Bot always responds "Hello world!" first.
+- Create `AIService` project files and register in Aspire Host.
 - Implement an `AIService` using Semantic Kernel to understand user intent and generate responses.
-- Implement the main application logic in `ChatBro.App` to orchestrate the services.
-- Write unit and integration tests for all services and components.
+- Integrate `TelegramService` with `AIService` so that telegram bot can answer easy questions.
+- Create `RestaurantService` project files and register in Aspire Host.
+- Implement a `RestaurantService` to fetch data from `lounaat.info`.
+- Implement an `AIService` using Kernel Function to understand when user asks about lunch options and request from `RestaurantService`.
 
 **Ordering Strategy**:
 - TDD order: Tests before implementation.
 - Dependency order: Models → Services → App.
 
-**Estimated Output**: ~15-20 tasks in `tasks.md`.
+**Estimated Output**: ~20-30 tasks in `tasks.md`.
 
 **IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 
