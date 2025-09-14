@@ -59,10 +59,10 @@ As a user, I want to interact with a personal AI assistant through a Telegram bo
 
 ### Acceptance Scenarios
 1. **Given** I have the Telegram bot open, **When** I ask "What is the capital of France?", **Then** the bot should reply with "Paris".
-2. **Given** I have previously told the bot "I like Italian food", **When** I ask "Where should I go for lunch?", **Then** the bot should suggest nearby Italian restaurants.
+2. **Given** the bot is connected to www.lounaat.info, **When** I ask "What are the lunch options?", **Then** the bot should suggest menu options closest to my work place.
+2. **Given** I have previously told the bot "I like burgers", **When** I ask "What are the lunch options?", **Then** the bot should prioritize menu options with burgers.
 3. **Given** the bot is connected to my document system, **When** I ask "Find my 2023 tax return", **Then** the bot should provide me with the document.
 4. **Given** the bot is connected to my home media server, **When** I ask "Suggest a family movie", **Then** the bot should recommend a movie and ask if I want to download it.
-5. **Given** a new highly-rated sci-fi movie is available, **When** the bot is running, **Then** it should proactively send me a message suggesting the movie.
 
 ### Edge Cases
 - What happens when the personal document system is offline or unreachable?
@@ -74,15 +74,14 @@ As a user, I want to interact with a personal AI assistant through a Telegram bo
 
 ### Functional Requirements
 - **FR-001**: System MUST be accessible through a Telegram bot interface.
-- **FR-002**: System MUST understand and respond to user queries in natural language.
+- **FR-002**: System MUST understand and respond to user queries in natural Russian and English languages.
 - **FR-003**: System MUST allow a user to store, update, and delete personal preferences.
 - **FR-004**: System MUST provide lunch recommendations from nearby restaurants, filterable by user preferences (e.g., cuisine, price).
 - **FR-005**: System MUST provide an interface to connect to and search a personal document system.
 - **FR-006**: System MUST retrieve and deliver documents from the connected personal document system.
 - **FR-007**: System MUST suggest movies appropriate for a family audience.
 - **FR-008**: System MUST be able to initiate a download on a connected home media server.
-- **FR-009**: System MUST proactively notify the user about new relevant options. [NEEDS CLARIFICATION: What events or data trigger proactive notifications? What defines "relevant options" (e.g., new movies matching preferences, new documents)?]
-- **FR-010**: System MUST handle unavailability of external systems (document system, media server) gracefully by informing the user. [NEEDS CLARIFICATION: What is the expected behavior? Retry logic? Caching?]
+- **FR-010**: System MUST handle unavailability of external systems (document system, media server) gracefully by  retrying requests first, then informing the user if retry does not help. 
 
 ### Key Entities *(include if feature involves data)*
 - **User**: Represents the individual interacting with the assistant.
