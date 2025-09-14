@@ -34,6 +34,15 @@ Features must be implemented as minimal but end-to-end slices, starting from the
 Stub implementations are acceptable in early iterations but must be progressively replaced with real implementations in subsequent tasks.
 
 
+### PRINCIPLE VI. Deployability
+Application should be easy to run locally on both Windows and Linux systems. All services must
+support deployment as Docker containers. 
+
+
+### PRINCIPLE VII. CI/CD
+GitHub Actions must run integration tests, build Docker images, and publish dev images from PR builds and latest images from the main branch.
+
+
 ## Governance
 <!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
