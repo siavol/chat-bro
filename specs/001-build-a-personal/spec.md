@@ -3,7 +3,7 @@
 **Feature Branch**: `001-build-a-personal`  
 **Created**: 2025-09-14  
 **Status**: Draft  
-**Input**: User description: "Build a personal AI assistant accessible through a Telegram bot that answers my questions in natural language, remembers my preferences, and acts as an agent to provide lunch recommendations from nearby restaurants, search and retrieve documents from my personal document system, and suggest movies for family evenings with the ability to initiate downloads through my home media server, while proactively notifying me about new relevant options."
+**Input**: User description: "Build a personal AI assistant accessible through a Telegram bot that answers my questions in natural language, and acts as an agent to provide lunch recommendations from nearby restaurants."
 
 ## Execution Flow (main)
 ```
@@ -55,45 +55,32 @@ When creating this spec from a user prompt:
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-As a user, I want to interact with a personal AI assistant through a Telegram bot. I want to ask it questions, have it remember my preferences, and have it act as an agent to help me with tasks like finding lunch, retrieving documents, and choosing movies.
+As a user, I want to interact with a personal AI assistant through a Telegram bot to ask questions and get lunch recommendations.
 
 ### Acceptance Scenarios
 1. **Given** I have the Telegram bot open, **When** I ask "What is the capital of France?", **Then** the bot should reply with "Paris".
-2. **Given** the bot is connected to www.lounaat.info, **When** I ask "What are the lunch options?", **Then** the bot should suggest menu options closest to my work place.
-2. **Given** I have previously told the bot "I like burgers", **When** I ask "What are the lunch options?", **Then** the bot should prioritize menu options with burgers.
-3. **Given** the bot is connected to my document system, **When** I ask "Find my 2023 tax return", **Then** the bot should provide me with the document.
-4. **Given** the bot is connected to my home media server, **When** I ask "Suggest a family movie", **Then** the bot should recommend a movie and ask if I want to download it.
+2. **Given** I have the Telegram bot open, **When** I ask "Where should I go for lunch?", **Then** the bot should suggest nearby restaurants.
 
 ### Edge Cases
-- What happens when the personal document system is offline or unreachable?
-- What happens when the home media server is offline or unreachable?
-- How does the system handle ambiguous requests like "Find the document"?
 - What happens if the user's location is unavailable for restaurant recommendations?
+- How does the system handle ambiguous or off-topic questions?
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 - **FR-001**: System MUST be accessible through a Telegram bot interface.
 - **FR-002**: System MUST understand and respond to user queries in natural Russian and English languages.
-- **FR-003**: System MUST allow a user to store, update, and delete personal preferences.
-- **FR-004**: System MUST provide lunch recommendations from nearby restaurants, filterable by user preferences (e.g., cuisine, price).
-- **FR-005**: System MUST provide an interface to connect to and search a personal document system.
-- **FR-006**: System MUST retrieve and deliver documents from the connected personal document system.
-- **FR-007**: System MUST suggest movies appropriate for a family audience.
-- **FR-008**: System MUST be able to initiate a download on a connected home media server.
-- **FR-010**: System MUST handle unavailability of external systems (document system, media server) gracefully by  retrying requests first, then informing the user if retry does not help. 
+- **FR-003**: System MUST provide lunch recommendations from nearby restaurants.
+  - System SHOULD support lunch recommendations from Finland lounas ravintola
+  - System SHOULD receive information about location and menu from https://www.lounaat.info/ resource or similar. 
+- **FR-004**: System SHOULD know the usual user location and filter reastaurants by this location.
+- **FR-005**: System MUST gracefully handle cases where the user's location is not available. System should ask where user is located.
 
 ### Key Entities *(include if feature involves data)*
 - **User**: Represents the individual interacting with the assistant.
-  - *Attributes*: Telegram User ID, Stored Preferences.
-- **Preference**: A user-defined setting to personalize assistant behavior.
-  - *Attributes*: Preference Key (e.g., "favorite_cuisine"), Preference Value (e.g., "Italian").
-- **Document**: A file within the user's personal document system.
-  - *Attributes*: [NEEDS CLARIFICATION: What metadata is available for documents (e.g., title, content, tags)?]
-- **Movie**: A media file on the user's home media server.
-  - *Attributes*: [NEEDS CLARIFICATION: What metadata is available for movies (e.g., title, genre, rating)?]
+  - *Attributes*: Telegram User ID.
 - **Restaurant**: A local dining establishment.
-  - *Attributes*: Name, Location, Cuisine Type, Price Range, Rating.
+  - *Attributes*: Name, Location, Today menu, Price. 
 
 ---
 
