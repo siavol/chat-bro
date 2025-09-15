@@ -1,0 +1,6 @@
+@ChatBro.TelegramBotService_HostAddress = http://localhost:5156
+
+GET {{ChatBro.TelegramBotService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

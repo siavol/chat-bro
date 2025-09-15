@@ -1,10 +1,10 @@
 # Tasks: Personal AI Assistant (Telegram Bot)
 
-**Input**: Design documents from `\specs\001-build-a-personal\`
+**Input**: IMPORTANT - Use design documents from `\specs\001-build-a-personal\`
 
 ## Phase 3.1: Setup
 - [x] T001: Create projects `ChatBro.AppHost` and `ChatBro.ServiceDefaults` in `src/` folder. IMPORTANT: Use `dotnet new aspire -n ChatBro -o src` CLI command to create a project. Put solution `ChatBro.sln` file to the root directory. Add gitignore file for .NET projects. Ensure that solution can be built with `dotnet build`.
-- [ ] T003: Create project `ChatBro.TelegramBotService` in `src/`.
+- [x] T002: Create project `ChatBro.TelegramBotService`. Register TelegramBotService in Aspire host. Use `ChatBro.ServiceDefaults` in `ChatBro.TelegramBotService` to apply common service defaults.
 - [ ] T004: Create project `ChatBro.AIService` in `src/`.
 - [ ] T005: Create project `ChatBro.RestaurantsService` in `src/`.
 - [ ] T006: Create test project `ChatBro.End2EndTests` in `src/tests/`.
