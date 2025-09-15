@@ -1,4 +1,6 @@
 using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,8 @@ app.UseHttpsRedirection();
 var tgToken = builder.Configuration["Telegram:Token"] 
               ?? throw new InvalidOperationException("Telegram Token not configured");
 var bot = new TelegramBotClient(tgToken);
+bot.OnMessage += OnMessage;
+
 app.MapGet("/getme", async () =>
 {
     var me = await bot.GetMe();
@@ -30,3 +34,10 @@ app.MapGet("/getme", async () =>
 
 
 app.Run();
+
+
+
+async Task OnMessage(Message message, UpdateType type)
+{
+    await bot.SendMessage(message.Chat, $"{message.From} said: {message.Text}. Confirming message received.");
+}
