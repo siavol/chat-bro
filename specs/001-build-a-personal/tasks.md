@@ -3,8 +3,8 @@
 **Input**: Design documents from `D:\code\chat-bro\specs\001-build-a-personal\`
 
 ## Phase 3.1: Setup
-- [ ] T001: Create solution file `ChatBro.sln` in the root directory.
-- [ ] T002: Create project `ChatBro.AspireHost` in `src/ChatBro.AspireHost`.
+- [ ] T001: Create solution file `ChatBro.sln` in the root directory. Add gitignore file for .NET projects.
+- [ ] T002: Create project `ChatBro.AspireHost` in `src/ChatBro.AspireHost`. Use `aspire run` CLI command to create project.
 - [ ] T003: Create project `ChatBro.TelegramBotService` in `src/ChatBro.TelegramBotService`.
 - [ ] T004: Create project `ChatBro.AIService` in `src/ChatBro.AIService`.
 - [ ] T005: Create project `ChatBro.RestaurantsService` in `src/ChatBro.RestaurantsService`.
