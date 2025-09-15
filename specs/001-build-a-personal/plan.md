@@ -92,9 +92,11 @@ specs/001-build-a-personal/
 
 ### Source Code (repository root)
 ```
-# Option 1: Single project (DEFAULT)
+Single solution:
+
 src/
-├── ChatBro.AspireHost/
+├── ChatBro.AppHost/
+├── ChatBro.ServiceDefaults/
 ├── ChatBro.TelegramBotService/
 ├── ChatBro.AIService/
 ├── ChatBro.RestaurantsService/
@@ -104,6 +106,8 @@ src/
     ├── ChatBro.AIService.Tests/
     ├── ChatBro.RestaurantsService.Tests/
 ```
+
+The project `ChatBro.ServiceDefaults` has shared configuration for services with observability etc.
 
 **Structure Decision**: Option 1
 

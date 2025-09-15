@@ -1,5 +1,6 @@
 This app uses Spec Kit: 
 - The specification files are in `specs` folder.
+- ALWAYS use principles from constitution `.specify\memory\constitution.md`.
 
 When working with tasks:
 - Do only tasks I requested explicitly. NEVER start next task until I request it.

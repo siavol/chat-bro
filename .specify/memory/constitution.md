@@ -26,7 +26,7 @@ Structured logging required. OTEL distributed traces required.
 
 
 ### PRINCIPLE IV. Simplicity
-Start simple. Prefere minimal code changes.
+Start simple. Prefere minimal code changes. In the end of every task, code should built without errors.
 
 
 ### PRINCIPLE V. End-to-End Incremental Features (NON-NEGOTIABLE)
