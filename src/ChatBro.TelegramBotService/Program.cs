@@ -19,7 +19,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.MapDefaultEndpoints();
 
 var tgToken = builder.Configuration["Telegram:Token"] 
               ?? throw new InvalidOperationException("Telegram Token not configured");
