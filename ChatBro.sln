@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.ServiceDefaults", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.TelegramBotService", "src\ChatBro.TelegramBotService\ChatBro.TelegramBotService.csproj", "{9ED4009D-77DF-4154-9C37-CDFB648D3DF8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{363602C8-BBCB-4F12-B7A6-BD71E44E3E83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.E2E.Tests", "tests\ChatBro.E2E.Tests\ChatBro.E2E.Tests.csproj", "{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,11 +59,26 @@ Global
 		{9ED4009D-77DF-4154-9C37-CDFB648D3DF8}.Release|x64.Build.0 = Release|Any CPU
 		{9ED4009D-77DF-4154-9C37-CDFB648D3DF8}.Release|x86.ActiveCfg = Release|Any CPU
 		{9ED4009D-77DF-4154-9C37-CDFB648D3DF8}.Release|x86.Build.0 = Release|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Debug|x64.Build.0 = Debug|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Debug|x86.Build.0 = Debug|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|x64.ActiveCfg = Release|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|x64.Build.0 = Release|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|x86.ActiveCfg = Release|Any CPU
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8C103E45-1039-4C4C-9E18-62C7CA4A2CBC}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B} = {363602C8-BBCB-4F12-B7A6-BD71E44E3E83}
 	EndGlobalSection
 EndGlobal
