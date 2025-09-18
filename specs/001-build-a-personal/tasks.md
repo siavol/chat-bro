@@ -7,7 +7,7 @@
 - [x] T002: Create project `ChatBro.TelegramBotService`. Register TelegramBotService in Aspire host. Use `ChatBro.ServiceDefaults` in `ChatBro.TelegramBotService` to apply common service defaults.
 - [ ] T004: Create project `ChatBro.AIService` in `src/`.
 - [ ] T005: Create project `ChatBro.RestaurantsService` in `src/`.
-- [ ] T006: Create test project `ChatBro.End2EndTests` in `src/tests/`.
+- [x] T006: Create test project `ChatBro.End2EndTests` in `src/tests/`.
 - [ ] T007: Add project references to `ChatBro.AspireHost`.
 
 ## Phase 3.2: "Hello World" Telegram Bot
