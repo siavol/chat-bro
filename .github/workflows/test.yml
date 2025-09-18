@@ -25,5 +25,6 @@ jobs:
 
     - name: Test
       env:
+        GITHUB_ACTIONS_RUNNER_TLS_NO_VERIFY: 1
         CHATBRO_TELEGRAM_TOKEN: ${{ secrets.CHATBRO_TELEGRAM_TOKEN }}
       run: dotnet test --configuration Release --no-build --verbosity normal
