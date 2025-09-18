@@ -4,10 +4,9 @@ using Microsoft.Extensions.Logging;
 namespace ChatBro.E2E.Tests.StepDefinitions;
 
 [Binding]
-public class AspireHostStepDefinitions
+public class AspireHostStepDefinitions(HttpContext httpContext)
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
-    
     
     private static DistributedApplication _app = null!;
     private HttpResponseMessage? _response;
@@ -48,9 +47,9 @@ public class AspireHostStepDefinitions
         var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
         await _app.StartAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
     }
-
-    [When("^HTTP GET (.*) request sent to the (.*) service$")]
-    public async Task WhenHttpRequestSentToTheService(string path, string serviceName)
+    
+    [When("I send HTTP request to the (.*) service")]
+    public async Task WhenISendHttpRequestToTheTelegramBotService(string serviceName)
     {
         var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
 
@@ -59,13 +58,6 @@ public class AspireHostStepDefinitions
             .WaitAsync(StartupTimeout, cancellationToken);
         
         var httpClient = _app.CreateHttpClient(serviceName);
-        _response = await httpClient.GetAsync(path, cancellationToken);
-    }
-
-    [Then("Response status is {int}")]
-    public void ThenResponseStatusIs(int statusCode)
-    {
-        Assert.NotNull(_response);
-        Assert.Equal(statusCode,  (int)_response.StatusCode);
+        httpContext.InitializeHttpClient(httpClient);
     }
 }
