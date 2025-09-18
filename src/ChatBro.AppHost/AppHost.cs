@@ -3,6 +3,7 @@
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
+builder.AddDockerComposeEnvironment("chat-bro");
 
 var telegramToken = builder.AddParameter("telegram-token")
     .WithDescription("Telegram bot token.")
