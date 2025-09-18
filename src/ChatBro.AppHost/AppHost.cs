@@ -1,20 +1,35 @@
 #pragma warning disable ASPIREINTERACTION001
 
+using Microsoft.Extensions.Configuration;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("docker-compose");
 
-var telegramToken = builder.AddParameter("telegram-token")
-    .WithDescription("Telegram bot token.")
-    .WithCustomInput(p => new InteractionInput
-    {
-        InputType = InputType.SecretText,
-        Label = p.Name,
-        Placeholder = "Enter token secret:secret"
-    });
+var telegramToken = CreateTelegramTokenParameter();
 
 var telegramBot = builder.AddProject<ChatBro_TelegramBotService>("telegram-bot")
     .WithEnvironment("Telegram__Token", telegramToken);
 
 builder.Build().Run();
+
+return;
+
+IResourceBuilder<ParameterResource> CreateTelegramTokenParameter()
+{
+    const string parameterName = "telegram-token";
+    var configValue = builder.Configuration.GetValue<string>(parameterName);
+    if (configValue is not null)
+    {
+        return builder.AddParameter(parameterName, configValue);
+    }
+
+    return builder.AddParameter(parameterName)
+        .WithDescription("Telegram bot token.")
+        .WithCustomInput(p => new InteractionInput
+        {
+            InputType = InputType.SecretText,
+            Label = p.Name,
+            Placeholder = "Enter token secret:secret"
+        });
+}

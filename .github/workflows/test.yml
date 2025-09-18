@@ -24,4 +24,6 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Test
+      env:
+        CHATBRO_TELEGRAM_TOKEN: ${{ secrets.CHATBRO_TELEGRAM_TOKEN }}
       run: dotnet test --configuration Release --no-build --verbosity normal

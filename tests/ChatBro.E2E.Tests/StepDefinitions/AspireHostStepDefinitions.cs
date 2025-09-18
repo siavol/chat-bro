@@ -10,12 +10,21 @@ public class AspireHostStepDefinitions(HttpContext httpContext)
     
     private static DistributedApplication _app = null!;
 
+    private static IEnumerable<string> GetAppHostArgs()
+    {
+        if (Environment.GetEnvironmentVariable("CHATBRO_TELEGRAM_TOKEN") is { Length: > 0 } telegramToken)
+        {
+            yield return $"--telegram-token={telegramToken}";
+        }
+    }
+
     [BeforeTestRun]
     public static async Task StartApp()
     {
         var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
         var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.ChatBro_AppHost>(cancellationToken);
+            .CreateAsync<Projects.ChatBro_AppHost>(GetAppHostArgs().ToArray(), cancellationToken);
+        
         appHost.Services.AddLogging(logging =>
         {
             logging.SetMinimumLevel(LogLevel.Debug);
