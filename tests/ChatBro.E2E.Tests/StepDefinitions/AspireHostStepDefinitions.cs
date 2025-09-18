@@ -9,7 +9,6 @@ public class AspireHostStepDefinitions(HttpContext httpContext)
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
     
     private static DistributedApplication _app = null!;
-    private HttpResponseMessage? _response;
 
     [BeforeTestRun]
     public static async Task StartApp()
@@ -23,9 +22,6 @@ public class AspireHostStepDefinitions(HttpContext httpContext)
             // Override the logging filters from the app's configuration
             logging.AddFilter(appHost.Environment.ApplicationName, LogLevel.Debug);
             logging.AddFilter("Aspire.", LogLevel.Debug);
-            
-            // TODO: howto embed fixtures?
-            // logging.AddProvider(new XunitLoggerProvider(outputHelper));
         });
         appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
         {
