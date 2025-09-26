@@ -39,5 +39,5 @@ app.Run();
 
 async Task OnMessage(Message message, UpdateType type)
 {
-    await bot.SendMessage(message.Chat, $"{message.From} said: {message.Text}. Confirming message received.");
+    await bot.SendMessage(message.Chat, $"{message.From} said: {message.Text}. Confirming message received. Channel id: {message.Chat.Id}");
 }
