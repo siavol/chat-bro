@@ -28,6 +28,7 @@ IResourceBuilder<ParameterResource> CreateTelegramTokenParameter()
         .WithDescription("Telegram bot token.")
         .WithCustomInput(p => new InteractionInput
         {
+            Name = parameterName,
             InputType = InputType.SecretText,
             Label = p.Name,
             Placeholder = "Enter token secret:secret"
