@@ -12,6 +12,7 @@
     <PackageReference Include="Aspire.Hosting.Docker" Version="9.5.0-preview.1.25474.7" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ChatBro.AiService\ChatBro.AiService.csproj" />
     <ProjectReference Include="..\ChatBro.TelegramBotService\ChatBro.TelegramBotService.csproj" />
   </ItemGroup>
 </Project>

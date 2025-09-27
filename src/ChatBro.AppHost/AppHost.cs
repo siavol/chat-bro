@@ -10,6 +10,7 @@ var telegramToken = CreateTelegramTokenParameter();
 
 var telegramBot = builder.AddProject<ChatBro_TelegramBotService>("telegram-bot")
     .WithEnvironment("Telegram__Token", telegramToken);
+builder.AddProject<ChatBro_AiService>("ai-service");
 
 builder.Build().Run();
 

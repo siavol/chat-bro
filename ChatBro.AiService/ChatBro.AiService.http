@@ -1,0 +1,6 @@
+@ChatBro.AiService_HostAddress = http://localhost:5139
+
+GET {{ChatBro.AiService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

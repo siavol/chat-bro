@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{363602C8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.IntegrationTests", "tests\ChatBro.IntegrationTests\ChatBro.IntegrationTests.csproj", "{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.AiService", "ChatBro.AiService\ChatBro.AiService.csproj", "{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|x64.Build.0 = Release|Any CPU
 		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|x86.ActiveCfg = Release|Any CPU
 		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}.Release|x86.Build.0 = Release|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Debug|x64.Build.0 = Debug|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Debug|x86.Build.0 = Debug|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|x64.ActiveCfg = Release|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|x64.Build.0 = Release|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|x86.ActiveCfg = Release|Any CPU
+		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
