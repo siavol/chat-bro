@@ -11,10 +11,10 @@ var telegramBot = builder.AddProject<ChatBro_TelegramBotService>("telegram-bot")
     .WithEnvironment("Telegram__Token", telegramToken);
 
 var ollama = builder.AddOllama("ollama")
-    .WithDataVolume()
+    .WithDataVolume();
     // .WithContainerRuntimeArgs("--gpus=all")
-    .WithOpenWebUI();
-var aiModel = ollama.AddModel(name: "ai-model", modelName: "llama3.1:8b");
+    // .WithOpenWebUI();
+var aiModel = ollama.AddModel(name: "ai-model", modelName: "llama3.2:latest");
 builder.AddProject<ChatBro_AiService>("ai-service")
     .WithReference(aiModel).WaitFor(aiModel);
 

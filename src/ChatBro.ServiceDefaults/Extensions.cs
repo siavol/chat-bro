@@ -28,8 +28,17 @@ public static class Extensions
 
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
+            http.ConfigureHttpClient(client =>
+            {
+                // TODO: this timeout is for kernel. Should configure special http client instead
+                var timeout = TimeSpan.FromSeconds(60 * 3);
+
+                // Set a default timeout for HTTP requests
+                client.Timeout = timeout;
+            });
+
             // Turn on resilience by default
-            http.AddStandardResilienceHandler();
+            // http.AddStandardResilienceHandler();
 
             // Turn on service discovery by default
             http.AddServiceDiscovery();
