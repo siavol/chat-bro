@@ -7,10 +7,16 @@ var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("docker-compose");
 
 var telegramToken = CreateTelegramTokenParameter();
-
 var telegramBot = builder.AddProject<ChatBro_TelegramBotService>("telegram-bot")
     .WithEnvironment("Telegram__Token", telegramToken);
-builder.AddProject<ChatBro_AiService>("ai-service");
+
+var ollama = builder.AddOllama("ollama")
+    .WithDataVolume()
+    // .WithContainerRuntimeArgs("--gpus=all")
+    .WithOpenWebUI();
+var aiModel = ollama.AddModel(name: "ai-model", modelName: "llama3.1:8b");
+builder.AddProject<ChatBro_AiService>("ai-service")
+    .WithReference(aiModel).WaitFor(aiModel);
 
 builder.Build().Run();
 
