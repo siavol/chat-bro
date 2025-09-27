@@ -1,0 +1,6 @@
+@ChatBro.RestaurantsService_HostAddress = http://localhost:5172
+
+GET {{ChatBro.RestaurantsService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

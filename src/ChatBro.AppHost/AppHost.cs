@@ -22,6 +22,9 @@ builder.AddProject<ChatBro_TelegramBotService>("telegram-bot")
     .WithReference(aiService).WaitFor(aiService);
 
 
+builder.AddProject<ChatBro_RestaurantsService>("restaurants");
+
+
 builder.Build().Run();
 
 return;

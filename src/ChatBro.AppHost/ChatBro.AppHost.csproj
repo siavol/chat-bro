@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChatBro.AiService\ChatBro.AiService.csproj" />
+    <ProjectReference Include="..\ChatBro.RestaurantsService\ChatBro.RestaurantsService.csproj" />
     <ProjectReference Include="..\ChatBro.TelegramBotService\ChatBro.TelegramBotService.csproj" />
   </ItemGroup>
 </Project>
