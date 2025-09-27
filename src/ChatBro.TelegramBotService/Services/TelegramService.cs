@@ -15,11 +15,11 @@ public class TelegramServiceOptions
 public class TelegramService(
     IHttpClientFactory httpClientFactory,
     IOptions<TelegramServiceOptions> options,
-    ILogger<TelegramService> logger) 
+    ILogger<TelegramService> logger,
+    ActivitySource activitySource) 
     : IHostedService
 {
     private TelegramBotClient _telegramBot = null!;
-    private static readonly ActivitySource ActivitySource = new("ChatBro.TelegramBotService");
     private readonly HttpClient _aiServiceHttpClient = httpClientFactory.CreateClient("ai-service");
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ public class TelegramService(
 
     private async Task OnMessage(Message message, UpdateType type)
     {
-        using var activity = ActivitySource.StartActivity("TelegramService.OnMessage");
+        using var activity = activitySource.StartActivity(ActivityKind.Consumer);
         activity?.SetTag("telegram.message.from", message.From?.ToString());
         activity?.SetTag("telegram.message.chat-id", message.Chat.Id);
         logger.LogInformation("Received message from {From} in chat {ChatId}", message.From, message.Chat.Id);

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ChatBro.TelegramBotService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,8 @@ builder.AddServiceDefaults();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddSingleton(new ActivitySource("ChatBro.TelegramBotService"));
 
 // Register a named HttpClient that uses Aspire logical address resolution
 builder.Services.AddHttpClient("ai-service",
