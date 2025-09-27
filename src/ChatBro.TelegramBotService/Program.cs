@@ -8,8 +8,10 @@ builder.AddServiceDefaults();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddHttpClient<TelegramService>(
+// Register a named HttpClient that uses Aspire logical address resolution
+builder.Services.AddHttpClient("ai-service",
     static client => client.BaseAddress = new("https+http://ai-service"));
+
 builder.Services.AddOptions<TelegramServiceOptions>()
     .BindConfiguration("Telegram")
     .ValidateDataAnnotations()

@@ -13,13 +13,14 @@ public class TelegramServiceOptions
 }
 
 public class TelegramService(
-    HttpClient aiServiceHttpClient,
+    IHttpClientFactory httpClientFactory,
     IOptions<TelegramServiceOptions> options,
     ILogger<TelegramService> logger) 
     : IHostedService
 {
     private TelegramBotClient _telegramBot = null!;
     private static readonly ActivitySource ActivitySource = new("ChatBro.TelegramBotService");
+    private readonly HttpClient _aiServiceHttpClient = httpClientFactory.CreateClient("ai-service");
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -45,7 +46,7 @@ public class TelegramService(
             }
         
             var chatRequest = new ChatRequest(message.Text);
-            var response = await aiServiceHttpClient.PostAsync("/chat", JsonContent.Create(chatRequest));
+            var response = await _aiServiceHttpClient.PostAsync("/chat", JsonContent.Create(chatRequest));
             response.EnsureSuccessStatusCode();
             var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>()
                                ?? throw new InvalidOperationException("Could not deserialize chat response");
