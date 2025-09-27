@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ChatBro.TelegramBotService.Clients;
 using ChatBro.TelegramBotService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,8 +12,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddSingleton(new ActivitySource("ChatBro.TelegramBotService"));
 
-// Register a named HttpClient that uses Aspire logical address resolution
-builder.Services.AddHttpClient("ai-service",
+builder.Services.AddHttpClient<AiServiceClient>(
     static client => client.BaseAddress = new("https+http://ai-service"));
 
 builder.Services.AddOptions<TelegramServiceOptions>()

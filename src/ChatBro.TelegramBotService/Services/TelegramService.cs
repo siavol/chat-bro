@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using System.Net.Http.Json;
+using ChatBro.TelegramBotService.Clients;
 
 namespace ChatBro.TelegramBotService.Services;
 
@@ -13,14 +13,13 @@ public class TelegramServiceOptions
 }
 
 public class TelegramService(
-    IHttpClientFactory httpClientFactory,
+    AiServiceClient aiServiceClient,
     IOptions<TelegramServiceOptions> options,
     ILogger<TelegramService> logger,
     ActivitySource activitySource) 
     : IHostedService
 {
     private TelegramBotClient _telegramBot = null!;
-    private readonly HttpClient _aiServiceHttpClient = httpClientFactory.CreateClient("ai-service");
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -45,14 +44,10 @@ public class TelegramService(
                 return;
             }
         
-            var chatRequest = new ChatRequest(message.Text);
-            var response = await _aiServiceHttpClient.PostAsync("/chat", JsonContent.Create(chatRequest));
-            response.EnsureSuccessStatusCode();
-            var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>()
-                               ?? throw new InvalidOperationException("Could not deserialize chat response");
-        
+            var replyText = await aiServiceClient.ChatAsync(message.Text);
+
             logger.LogInformation("Sending response to telegram");
-            await _telegramBot.SendMessage(message.Chat, chatResponse.TextContent);
+            await _telegramBot.SendMessage(message.Chat, replyText);
         }
         catch (Exception e)
         {
@@ -67,15 +62,9 @@ public class TelegramService(
                     { "exception.message", e.Message },
                     { "exception.stacktrace", e.ToString() }
                 }));
+            throw;
         }        
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
-
-    // TODO: share contract?
-    private record ChatRequest(string Message);
-    private record ChatResponse(string TextContent);
+    Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
