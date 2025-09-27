@@ -13,6 +13,8 @@ builder.Services.AddOptions<TelegramServiceOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 builder.Services.AddHostedService<TelegramService>();
+builder.Services.AddHttpClient<TelegramService>(
+    static client => client.BaseAddress = new("https+http://ai-service"));
 
 var app = builder.Build();
 

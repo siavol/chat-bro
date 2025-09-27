@@ -37,10 +37,10 @@ public class ChatController(Kernel kernel, ILogger<ChatController> logger) : Con
         logger.LogInformation("Received chat response: {Metadata}", result.Metadata);
         AddChangeResponseReceivedEvent(result);
 
-        return Ok(new
-        {
-            result
-        });
+        var responseItem = result.Items.Single();
+        var responseText = (string) responseItem.InnerContent!;
+
+        return Ok(new ChatResponse(responseText));
     }
     
     private static void AddChangeResponseReceivedEvent(ChatMessageContent result)
@@ -57,5 +57,8 @@ public class ChatController(Kernel kernel, ILogger<ChatController> logger) : Con
         ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
         Activity.Current?.AddEvent(e);
     }
+
     public record ChatRequest(string Message);
+
+    public record ChatResponse(string TextContent);
 }
