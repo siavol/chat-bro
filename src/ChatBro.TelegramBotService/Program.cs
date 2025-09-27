@@ -32,12 +32,4 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapDefaultEndpoints();
 
-
-// app.MapGet("/getme", async () =>
-// {
-//     var me = await bot.GetMe();
-//     return $"Hello, World! I am user {me.Id} and my name is {me.FirstName}.";
-// });
-
-
 app.Run();
