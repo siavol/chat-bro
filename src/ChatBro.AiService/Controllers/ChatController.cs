@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using TextContent = Microsoft.SemanticKernel.TextContent;
 
 namespace ChatBro.AiService.Controllers;
 
@@ -37,8 +38,12 @@ public class ChatController(Kernel kernel, ILogger<ChatController> logger) : Con
         logger.LogInformation("Received chat response: {Metadata}", result.Metadata);
         AddChangeResponseReceivedEvent(result);
 
-        var responseItem = result.Items.Single();
-        var responseText = (string) responseItem.InnerContent!;
+        var responseItem = result.Items.OfType<TextContent>().Single();
+        var responseText = responseItem.Text!;
+        if (string.IsNullOrWhiteSpace(responseText))
+        {
+            throw new InvalidOperationException("No text response from the model!");
+        }
 
         return Ok(new ChatResponse(responseText));
     }

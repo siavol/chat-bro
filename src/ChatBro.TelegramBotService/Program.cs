@@ -8,13 +8,13 @@ builder.AddServiceDefaults();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddHttpClient<TelegramService>(
+    static client => client.BaseAddress = new("https+http://ai-service"));
 builder.Services.AddOptions<TelegramServiceOptions>()
     .BindConfiguration("Telegram")
     .ValidateDataAnnotations()
     .ValidateOnStart();
 builder.Services.AddHostedService<TelegramService>();
-builder.Services.AddHttpClient<TelegramService>(
-    static client => client.BaseAddress = new("https+http://ai-service"));
 
 var app = builder.Build();
 

@@ -14,10 +14,12 @@ public class TelegramServiceOptions
 
 public class TelegramService(
     HttpClient aiServiceHttpClient,
-    IOptions<TelegramServiceOptions> options) 
+    IOptions<TelegramServiceOptions> options,
+    ILogger<TelegramService> logger) 
     : IHostedService
 {
     private TelegramBotClient _telegramBot = null!;
+    private static readonly ActivitySource ActivitySource = new("ChatBro.TelegramBotService");
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -29,22 +31,42 @@ public class TelegramService(
 
     private async Task OnMessage(Message message, UpdateType type)
     {
-        Activity.Current?.AddTag("telegram.message.from", message.From?.ToString());
-        Activity.Current?.AddTag("telegram.message.chat-id", message.Chat.Id);
-        
-        if (string.IsNullOrWhiteSpace(message.Text))
+        using var activity = ActivitySource.StartActivity("TelegramService.OnMessage");
+        activity?.SetTag("telegram.message.from", message.From?.ToString());
+        activity?.SetTag("telegram.message.chat-id", message.Chat.Id);
+        logger.LogInformation("Received message from {From} in chat {ChatId}", message.From, message.Chat.Id);
+        try
         {
-            await _telegramBot.SendMessage(message.Chat, "Could you repeat? I received empty message.");
-            return;
+            if (string.IsNullOrWhiteSpace(message.Text))
+            {
+                logger.LogWarning("Empty message, responded with stub.");
+                await _telegramBot.SendMessage(message.Chat, "Could you repeat? I received empty message.");
+                return;
+            }
+        
+            var chatRequest = new ChatRequest(message.Text);
+            var response = await aiServiceHttpClient.PostAsync("/chat", JsonContent.Create(chatRequest));
+            response.EnsureSuccessStatusCode();
+            var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>()
+                               ?? throw new InvalidOperationException("Could not deserialize chat response");
+        
+            logger.LogInformation("Sending response to telegram");
+            await _telegramBot.SendMessage(message.Chat, chatResponse.TextContent);
         }
-        
-        var chatRequest = new ChatRequest(message.Text);
-        var response = await aiServiceHttpClient.PostAsync("/chat", JsonContent.Create(chatRequest));
-        response.EnsureSuccessStatusCode();
-        var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>()
-            ?? throw new InvalidOperationException("Could not deserialize chat response");
-        
-        await _telegramBot.SendMessage(message.Chat, chatResponse.TextContent);
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to process telegram message");
+            // TODO: move to extension method
+            activity?.SetStatus(ActivityStatusCode.Error, e.Message);
+            activity?.AddEvent(new ActivityEvent(
+                "exception",
+                tags: new ActivityTagsCollection
+                {
+                    { "exception.type", e.GetType().FullName },
+                    { "exception.message", e.Message },
+                    { "exception.stacktrace", e.ToString() }
+                }));
+        }        
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
