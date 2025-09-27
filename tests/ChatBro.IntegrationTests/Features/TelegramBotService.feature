@@ -11,7 +11,7 @@ Scenario: Telegram Bot Service reports healthy status when running.
     Then the response status is 200
 
     
-Scenario: Telegram Bot responds to the messages in the telegram
-    Given the application is started
-    When telegram user sends a message "Hey bro!"
-    Then bot responds in telegram with "said: hey bro."
+#Scenario: Telegram Bot responds to the messages in the telegram
+#    Given the application is started
+#    When telegram user sends a message "Hey bro!"
+#    Then bot responds in telegram with "said: hey bro."

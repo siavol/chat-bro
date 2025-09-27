@@ -1,4 +1,4 @@
-﻿namespace ChatBro.E2E.Tests.StepDefinitions;
+﻿namespace ChatBro.IntegrationTests.StepDefinitions;
 
 [Binding]
 public class HttpStepDefinitions(HttpContext httpContext)

@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.TelegramBotService"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{363602C8-BBCB-4F12-B7A6-BD71E44E3E83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.E2E.Tests", "tests\ChatBro.E2E.Tests\ChatBro.E2E.Tests.csproj", "{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.IntegrationTests", "tests\ChatBro.IntegrationTests\ChatBro.IntegrationTests.csproj", "{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
