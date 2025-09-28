@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ChatBro.RestaurantsService.Model\ChatBro.RestaurantsService.Model.csproj" />
       <ProjectReference Include="..\ChatBro.ServiceDefaults\ChatBro.ServiceDefaults.csproj" />
     </ItemGroup>
 

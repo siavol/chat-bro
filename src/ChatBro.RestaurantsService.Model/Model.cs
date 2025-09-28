@@ -1,4 +1,4 @@
-﻿namespace ChatBro.RestaurantsService;
+﻿namespace ChatBro.RestaurantsService.Model;
 
 public record RestaurantMenuItem(string Name, bool Laktositon = false, bool Maidoton = false, bool Gluuteniton = false);
 

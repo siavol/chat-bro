@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using ChatBro.RestaurantsService.Model;
+using HtmlAgilityPack;
 
 namespace ChatBro.RestaurantsService.Clients;
 
