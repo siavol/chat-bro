@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.IntegrationTests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.AiService", "src\ChatBro.AiService\ChatBro.AiService.csproj", "{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "getlounaat", "tests\getlounaat\getlounaat.csproj", "{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.RestaurantsService", "src\ChatBro.RestaurantsService\ChatBro.RestaurantsService.csproj", "{0F971293-914A-4066-B6D2-7A18D5CE91D5}"
 EndProject
 Global
@@ -89,18 +87,6 @@ Global
 		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|x64.Build.0 = Release|Any CPU
 		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|x86.ActiveCfg = Release|Any CPU
 		{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}.Release|x86.Build.0 = Release|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Debug|x64.Build.0 = Debug|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Debug|x86.Build.0 = Debug|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Release|x64.ActiveCfg = Release|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Release|x64.Build.0 = Release|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Release|x86.ActiveCfg = Release|Any CPU
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922}.Release|x86.Build.0 = Release|Any CPU
 		{0F971293-914A-4066-B6D2-7A18D5CE91D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F971293-914A-4066-B6D2-7A18D5CE91D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F971293-914A-4066-B6D2-7A18D5CE91D5}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -122,6 +108,5 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A8547BC1-8F1C-4CDA-8933-F3FA1652555B} = {363602C8-BBCB-4F12-B7A6-BD71E44E3E83}
-		{2ADF9F00-FBA8-4090-BD56-CD2AC7CF4922} = {363602C8-BBCB-4F12-B7A6-BD71E44E3E83}
 	EndGlobalSection
 EndGlobal

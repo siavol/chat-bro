@@ -1,9 +1,13 @@
+using ChatBro.RestaurantsService.Clients;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddTransient<LounaatScrapper>();
 
 var app = builder.Build();
 
