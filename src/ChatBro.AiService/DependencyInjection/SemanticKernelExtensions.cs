@@ -1,4 +1,5 @@
 ﻿using ChatBro.AiService.Plugins;
+using ChatBro.RestaurantsService.KernelFunction;
 using Microsoft.SemanticKernel;
 using OllamaSharp;
 
@@ -20,9 +21,6 @@ public static class SemanticKernelExtensions
 
             var kernelBuilder = Kernel.CreateBuilder();
 
-            // Proxy services to the kernel builder
-            // kernelBuilder.Services.AddScoped(_ => appServices.GetRequiredService<RadarrClient>());
-
             // TODO: improve logging to make it exported
             // var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             // var logger = sp.GetRequiredService(typeof(ILogger<>));
@@ -33,8 +31,10 @@ public static class SemanticKernelExtensions
             kernelBuilder.AddOllamaChatClient(ollamaClient: concreteOllamaApiClient);
             kernelBuilder.AddOllamaChatCompletion(ollamaClient: concreteOllamaApiClient);
 
-            // kernelBuilder.Plugins
-            //     .AddFromType<RadarrPlugin>();
+            kernelBuilder.Services.AddHttpClient<RestaurantsServiceClient>(
+                static client => client.BaseAddress = new("https+http://restaurants"));
+            kernelBuilder.Plugins
+                .AddFromType<RestaurantsPlugin>();
 
             var loggingFilter = new LoggingFilter(appServices.GetRequiredService<ILogger<LoggingFilter>>());
             kernelBuilder.Services
@@ -47,5 +47,11 @@ public static class SemanticKernelExtensions
         });
 
         return appBuilder;
+    }
+
+    private static IServiceCollection ProxyScoped<T>(this IServiceCollection services, IServiceProvider appServices)
+    {
+        services.AddScoped(_ => appServices.GetRequiredService<RestaurantsServiceClient>());
+        return services;
     }
 }

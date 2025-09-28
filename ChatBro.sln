@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.RestaurantsService"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.RestaurantsService.Model", "src\ChatBro.RestaurantsService.Model\ChatBro.RestaurantsService.Model.csproj", "{4101CCAE-77A3-4F8C-AD27-7B5DE51FC2C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.RestaurantsService.KernelFunction", "src\ChatBro.RestaurantsService.KernelFunction\ChatBro.RestaurantsService.KernelFunction.csproj", "{2E2BB8DA-00B6-41CB-888F-4E8B86393240}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,18 @@ Global
 		{4101CCAE-77A3-4F8C-AD27-7B5DE51FC2C0}.Release|x64.Build.0 = Release|Any CPU
 		{4101CCAE-77A3-4F8C-AD27-7B5DE51FC2C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{4101CCAE-77A3-4F8C-AD27-7B5DE51FC2C0}.Release|x86.Build.0 = Release|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Debug|x64.Build.0 = Debug|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Debug|x86.Build.0 = Debug|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Release|x64.ActiveCfg = Release|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Release|x64.Build.0 = Release|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Release|x86.ActiveCfg = Release|Any CPU
+		{2E2BB8DA-00B6-41CB-888F-4E8B86393240}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

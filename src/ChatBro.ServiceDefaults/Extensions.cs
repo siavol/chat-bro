@@ -31,7 +31,7 @@ public static class Extensions
             http.ConfigureHttpClient(client =>
             {
                 // TODO: this timeout is for kernel. Should configure special http client instead
-                var timeout = TimeSpan.FromSeconds(60 * 3);
+                var timeout = TimeSpan.FromMinutes(10);
 
                 // Set a default timeout for HTTP requests
                 client.Timeout = timeout;
