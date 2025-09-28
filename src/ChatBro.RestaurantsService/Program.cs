@@ -7,7 +7,9 @@ builder.AddServiceDefaults();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.Services.AddTransient<LounaatScrapper>();
+builder.Services
+    .AddTransient<LounaatScrapper>()
+    .AddTransient<LounaatParser>();
 
 var app = builder.Build();
 
