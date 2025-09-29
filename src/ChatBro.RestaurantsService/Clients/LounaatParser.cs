@@ -7,6 +7,7 @@ public class LounaatParser(ILogger<LounaatParser> logger)
 {
     public IList<Restaurant> Parse(string html)
     {
+        logger.LogDebug("Starting to parse HTML for restaurants");
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
         
@@ -48,6 +49,7 @@ public class LounaatParser(ILogger<LounaatParser> logger)
             restaurants.Add(new Restaurant(name, menuItems, distance, messages));
         }
 
+        logger.LogDebug("Successfully parsed {RestaurantCount} restaurants", restaurants.Count);
         return restaurants;
     }
 }
