@@ -53,7 +53,6 @@ jobs:
     strategy:
       matrix:
         image: [chatbro-telegram-bot, chatbro-restaurants, chatbro-ai-service]
-        tag: latest
 
     steps:
     - name: Check out code
@@ -78,8 +77,8 @@ jobs:
 
     - name: Tag and push image to Docker Hub
       run: |
-        docker tag ${{ matrix.image }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ matrix.tag }}
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ matrix.tag }}
+        docker tag ${{ matrix.image }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:latest
 
     - name: Upload compose artifacts
       uses: actions/upload-artifact@v4
