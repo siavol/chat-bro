@@ -1,24 +1,22 @@
 ﻿using ChatBro.AiService.Plugins;
 using ChatBro.RestaurantsService.KernelFunction;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using OllamaSharp;
+using OpenAI;
 
 namespace ChatBro.AiService.DependencyInjection;
 
 #pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 public static class SemanticKernelExtensions
 {
-    public static IHostApplicationBuilder AddSemanticKernel(
-        this IHostApplicationBuilder appBuilder,
-        string connectinName)
+    public static IHostApplicationBuilder AddSemanticKernel(this IHostApplicationBuilder appBuilder)
     {
-        appBuilder.AddOllamaApiClient(connectinName);
-
+        appBuilder.Services.AddOptions<OpenAiSettings>()
+            .BindConfiguration("OpenAI")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         appBuilder.Services.AddSingleton(appServices =>
         {
-            var ollamaApiClient = appServices.GetRequiredService<IOllamaApiClient>();
-            var concreteOllamaApiClient = (OllamaApiClient)ollamaApiClient;
-
             var kernelBuilder = Kernel.CreateBuilder();
 
             // TODO: improve logging to make it exported
@@ -28,11 +26,12 @@ public static class SemanticKernelExtensions
             // kernelBuilder.Services.AddSingleton(logger);
             kernelBuilder.Services.AddLogging();
 
-            kernelBuilder.AddOllamaChatClient(ollamaClient: concreteOllamaApiClient);
-            kernelBuilder.AddOllamaChatCompletion(ollamaClient: concreteOllamaApiClient);
+            var openAiSettings = appServices.GetRequiredService<IOptions<OpenAiSettings>>();
+            var openAiClient = new OpenAIClient(openAiSettings.Value.ApiKey);
+            kernelBuilder.AddOpenAIChatClient(openAiSettings.Value.Model, openAiClient);
+            kernelBuilder.AddOpenAIChatCompletion(openAiSettings.Value.Model, openAiClient);
 
-            kernelBuilder.Services.AddHttpClient<RestaurantsServiceClient>(
-                static client => client.BaseAddress = new("https+http://restaurants"));
+            kernelBuilder.Services.ProxyScoped<RestaurantsServiceClient>(appServices);
             kernelBuilder.Plugins
                 .AddFromType<RestaurantsPlugin>();
 
@@ -55,3 +54,11 @@ public static class SemanticKernelExtensions
         return services;
     }
 }
+
+public class OpenAiSettings
+{
+    public required string Model { get; init; }
+    public required string ApiKey { get; init; }
+}
+
+#pragma warning restore SKEXP0070

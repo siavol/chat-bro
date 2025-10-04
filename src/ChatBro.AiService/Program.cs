@@ -8,7 +8,10 @@ builder.AddServiceDefaults();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.AddSemanticKernel("ai-model");
+builder.Services.AddHttpClient<RestaurantsServiceClient>(
+    static client => client.BaseAddress = new Uri("https+http://restaurants"));
+
+builder.AddSemanticKernel();
 
 var app = builder.Build();
 

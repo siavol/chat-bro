@@ -9,15 +9,11 @@ builder.AddDockerComposeEnvironment("docker-compose");
 
 var restaurants = builder.AddProject<ChatBro_RestaurantsService>("restaurants");
 
-
-var ollama = builder.AddOllama("ollama")
-    .WithDataVolume()
-    .WithLifetime(ContainerLifetime.Persistent);
-    // .WithContainerRuntimeArgs("--gpus=all")
-    // .WithOpenWebUI();
-var aiModel = ollama.AddModel(name: "ai-model", modelName: "llama3.2:latest");
+var openAiApiKey = CreateOpenAiApiKeyParameter();
+var openAiModel = builder.AddParameter("openai-model", value: "o4-mini", publishValueAsDefault: true);
 var aiService = builder.AddProject<ChatBro_AiService>("ai-service")
-    .WithReference(aiModel).WaitFor(aiModel)
+    .WithEnvironment("OpenAI__ApiKey", openAiApiKey)
+    .WithEnvironment("OpenAI__Model", openAiModel)
     .WithReference(restaurants).WaitFor(restaurants);
 
 
@@ -48,5 +44,25 @@ IResourceBuilder<ParameterResource> CreateTelegramTokenParameter()
             InputType = InputType.SecretText,
             Label = p.Name,
             Placeholder = "Enter token secret:secret"
+        });
+}
+
+IResourceBuilder<ParameterResource> CreateOpenAiApiKeyParameter()
+{
+    const string parameterName = "openai-api-key";
+    var configValue = builder.Configuration.GetValue<string>(parameterName);
+    if (configValue is not null)
+    {
+        return builder.AddParameter(parameterName, configValue);
+    }
+
+    return builder.AddParameter(parameterName)
+        .WithDescription("OpenAI API Key.")
+        .WithCustomInput(p => new InteractionInput
+        {
+            Name = parameterName,
+            InputType = InputType.SecretText,
+            Label = p.Name,
+            Placeholder = "Enter api key"
         });
 }
