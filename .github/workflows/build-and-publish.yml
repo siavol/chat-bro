@@ -74,22 +74,22 @@ jobs:
         if-no-files-found: error
         retention-days: 7
 
-
-  publish-docker-images:
-    runs-on: ubuntu-latest
-    needs: publish-docker-compose
-    #    if: github.event_name == 'push'
-    strategy:
-      matrix:
-        image: [chatbro-telegram-bot, chatbro-restaurants, chatbro-ai-service]
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Tag and push image to Docker Hub
-        run: |
-          docker tag ${{ matrix.image }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:latest
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+  
+    - name: Tag and push image to Docker Hub
+      run: |
+        echo "Pushing chatbro-telegram-bot"
+        docker tag chatbro-telegram-bot ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
+        
+        echo "Pushing chatbro-restaurants"
+        docker tag chatbro-restaurants ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
+                
+        echo "Pushing chatbro-ai-service"
+        docker tag chatbro-ai-service ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
