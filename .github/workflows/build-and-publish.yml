@@ -81,16 +81,36 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
   
+    - name: Calculate version
+      id: calculate-version
+      run: |
+        COMMIT_SHORT=$(echo $GITHUB_SHA | cut -c1-8)
+        DATE_TAG=$(date +"%y%m%d")
+        VERSION_TAG="$DATE_TAG-$COMMIT_SHORT"
+        echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+        echo "Version calculated: $VERSION_TAG"
+        echo "::set-output name=version::$VERSION_TAG"
+
+    - name: Report version
+      run: |
+        echo "Version: ${{ env.VERSION_TAG }}"
+
     - name: Tag and push image to Docker Hub
       run: |
         echo "Pushing chatbro-telegram-bot"
         docker tag chatbro-telegram-bot ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
+        docker tag chatbro-telegram-bot ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:${{ env.VERSION_TAG }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:${{ env.VERSION_TAG }}
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
-        
+
         echo "Pushing chatbro-restaurants"
         docker tag chatbro-restaurants ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
+        docker tag chatbro-restaurants ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
-                
+
         echo "Pushing chatbro-ai-service"
         docker tag chatbro-ai-service ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
+        docker tag chatbro-ai-service ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
