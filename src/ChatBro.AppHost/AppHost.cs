@@ -36,7 +36,7 @@ IResourceBuilder<ParameterResource> CreateTelegramTokenParameter()
         return builder.AddParameter(parameterName, configValue);
     }
 
-    return builder.AddParameter(parameterName)
+    return builder.AddParameter(parameterName, secret: true)
         .WithDescription("Telegram bot token.")
         .WithCustomInput(p => new InteractionInput
         {
@@ -56,7 +56,7 @@ IResourceBuilder<ParameterResource> CreateOpenAiApiKeyParameter()
         return builder.AddParameter(parameterName, configValue);
     }
 
-    return builder.AddParameter(parameterName)
+    return builder.AddParameter(parameterName, secret: true)
         .WithDescription("OpenAI API Key.")
         .WithCustomInput(p => new InteractionInput
         {
