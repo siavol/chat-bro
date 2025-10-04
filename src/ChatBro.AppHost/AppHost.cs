@@ -9,15 +9,17 @@ builder.AddDockerComposeEnvironment("docker-compose");
 
 var restaurants = builder.AddProject<ChatBro_RestaurantsService>("restaurants");
 
-var openAiApiKey = CreateOpenAiApiKeyParameter();
-var openAiModel = builder.AddParameter("openai-model", value: "o4-mini", publishValueAsDefault: true);
+var openAiApiKey = CreateUiSecretParameter(
+    "openai-api-key", description: "OpenAI API Key.", placeholder: "Enter api key");
+var openAiModel = builder.AddParameter("openai-model", value: "gpt-5-nano", publishValueAsDefault: true);
 var aiService = builder.AddProject<ChatBro_AiService>("ai-service")
     .WithEnvironment("OpenAI__ApiKey", openAiApiKey)
     .WithEnvironment("OpenAI__Model", openAiModel)
     .WithReference(restaurants).WaitFor(restaurants);
 
 
-var telegramToken = CreateTelegramTokenParameter();
+var telegramToken = CreateUiSecretParameter(
+    "telegram-token", description: "Telegram bot token.", placeholder: "Enter token secret:secret");
 builder.AddProject<ChatBro_TelegramBotService>("telegram-bot")
     .WithEnvironment("Telegram__Token", telegramToken)
     .WithReference(aiService).WaitFor(aiService);
@@ -27,42 +29,21 @@ builder.Build().Run();
 
 return;
 
-IResourceBuilder<ParameterResource> CreateTelegramTokenParameter()
+IResourceBuilder<ParameterResource> CreateUiSecretParameter(string name, string description, string? placeholder = null)
 {
-    const string parameterName = "telegram-token";
-    var configValue = builder.Configuration.GetValue<string>(parameterName);
+    var configValue = builder.Configuration.GetValue<string>(name);
     if (configValue is not null)
     {
-        return builder.AddParameter(parameterName, configValue);
+        return builder.AddParameter(name, configValue);
     }
 
-    return builder.AddParameter(parameterName, secret: true)
-        .WithDescription("Telegram bot token.")
+    return builder.AddParameter(name, secret: true)
+        .WithDescription(description)
         .WithCustomInput(p => new InteractionInput
         {
-            Name = parameterName,
+            Name = name,
             InputType = InputType.SecretText,
             Label = p.Name,
-            Placeholder = "Enter token secret:secret"
-        });
-}
-
-IResourceBuilder<ParameterResource> CreateOpenAiApiKeyParameter()
-{
-    const string parameterName = "openai-api-key";
-    var configValue = builder.Configuration.GetValue<string>(parameterName);
-    if (configValue is not null)
-    {
-        return builder.AddParameter(parameterName, configValue);
-    }
-
-    return builder.AddParameter(parameterName, secret: true)
-        .WithDescription("OpenAI API Key.")
-        .WithCustomInput(p => new InteractionInput
-        {
-            Name = parameterName,
-            InputType = InputType.SecretText,
-            Label = p.Name,
-            Placeholder = "Enter api key"
+            Placeholder = placeholder
         });
 }
