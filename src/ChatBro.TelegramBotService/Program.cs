@@ -13,7 +13,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton(new ActivitySource("ChatBro.TelegramBotService"));
 
 builder.Services.AddHttpClient<AiServiceClient>(
-    static client => client.BaseAddress = new("https+http://ai-service"));
+    static client => client.BaseAddress = new("https+http://chatbro-ai-service"));
 
 builder.Services.AddOptions<TelegramServiceOptions>()
     .BindConfiguration("Telegram")

@@ -7,12 +7,12 @@ var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("docker-compose");
 
 
-var restaurants = builder.AddProject<ChatBro_RestaurantsService>("restaurants");
+var restaurants = builder.AddProject<ChatBro_RestaurantsService>("chatbro-restaurants");
 
 var openAiApiKey = CreateUiSecretParameter(
     "openai-api-key", description: "OpenAI API Key.", placeholder: "Enter api key");
 var openAiModel = builder.AddParameter("openai-model", value: "gpt-5-nano", publishValueAsDefault: true);
-var aiService = builder.AddProject<ChatBro_AiService>("ai-service")
+var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
     .WithEnvironment("OpenAI__ApiKey", openAiApiKey)
     .WithEnvironment("OpenAI__Model", openAiModel)
     .WithReference(restaurants).WaitFor(restaurants);
@@ -20,7 +20,7 @@ var aiService = builder.AddProject<ChatBro_AiService>("ai-service")
 
 var telegramToken = CreateUiSecretParameter(
     "telegram-token", description: "Telegram bot token.", placeholder: "Enter token secret:secret");
-builder.AddProject<ChatBro_TelegramBotService>("telegram-bot")
+builder.AddProject<ChatBro_TelegramBotService>("chatbro-telegram-bot")
     .WithEnvironment("Telegram__Token", telegramToken)
     .WithReference(aiService).WaitFor(aiService);
 
