@@ -6,7 +6,7 @@
     
 Scenario: Telegram Bot Service reports healthy status when running.
     Given the application is started
-    When I send HTTP request to the telegram-bot service
+    When I send HTTP request to the chatbro-telegram-bot service
     And request is GET /health
     Then the response status is 200
 
