@@ -18,9 +18,11 @@ public class RestaurantsServiceClient(HttpClient httpClient, JsonSerializerOptio
     /// <param name="date"></param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of restaurants (possibly empty).</returns>
-    public async Task<IReadOnlyList<Restaurant>> GetRestaurantsAsync(DateOnly date,
+    public async Task<IReadOnlyList<Restaurant>> GetRestaurantsAsync(DateOnly? date = null,
         CancellationToken cancellationToken = default)
     {
+        date ??= DateOnly.FromDateTime(DateTime.Now);
+        
         var requestUri = $"lounaat?date={date:O}";
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
