@@ -37,7 +37,7 @@ public class LounaatParser(ILogger<LounaatParser> logger)
                 menuItems.Add(new RestaurantMenuItem(dishName, lakto, maito, glute));
             }
 
-            // Дополнительные сообщения (например ссылки или текст без диет. меток)
+            // Additional messages (e.g., links or text without diet labels)
             var messages = new List<string>();
             foreach (var li in itemNode.SelectNodes(".//li[contains(@class,'menu-item') and not(contains(@class,'item-diet'))]") ?? Enumerable.Empty<HtmlNode>())
             {
