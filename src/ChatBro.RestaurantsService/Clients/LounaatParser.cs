@@ -29,7 +29,7 @@ public class LounaatParser(ILogger<LounaatParser> logger)
                 if (dishNameNode == null) continue;
                 var dishName = dishNameNode.InnerText.Trim();
 
-                // Проверяем диетические метки
+                // Checking dietary labels
                 bool lakto = dishNode.SelectSingleNode(".//a[contains(@class,'diet-l')]") != null;
                 bool maito = dishNode.SelectSingleNode(".//a[contains(@class,'diet-m')]") != null;
                 bool glute = dishNode.SelectSingleNode(".//a[contains(@class,'diet-g')]") != null;
