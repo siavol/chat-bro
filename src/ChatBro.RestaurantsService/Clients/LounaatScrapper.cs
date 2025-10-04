@@ -6,14 +6,16 @@ public class LounaatScrapper(ILogger<LounaatScrapper> logger)
 {
     private const string LounaatUrl = "https://lounaat.info/";
     
-    public async Task<string> Scrape()
+    public async Task<string> Scrape(DateOnly date)
     {
         using var http = GetHttpClient();
 
         logger.LogInformation("Get main page to grab cookies");
         var homeResp = await http.GetAsync("/");
-        
-        var apiUrl = "/ajax/filter?view=lahistolla&day=8&page=0&coords[lat]=60.1761732&coords[lng]=24.8359807";
+        homeResp.EnsureSuccessStatusCode();
+
+        var day = GetDayOfWeekNumber(date);
+        var apiUrl = $"/ajax/filter?view=lahistolla&day={day}&page=0&coords[lat]=60.1761732&coords[lng]=24.8359807";
         using var req = new HttpRequestMessage(HttpMethod.Get, apiUrl);
 
         req.Headers.Referrer = new Uri("https://lounaat.info/");
@@ -51,5 +53,13 @@ public class LounaatScrapper(ILogger<LounaatScrapper> logger)
         http.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip, deflate, br");
         
         return http;
+    }
+    
+    private static int GetDayOfWeekNumber(DateOnly date)
+    {
+        var dayOfWeek = date.DayOfWeek;
+        var dayOfWeekNumber = (int)dayOfWeek;
+        var day = dayOfWeekNumber == 0 ? 7 : dayOfWeekNumber;
+        return day;
     }
 }

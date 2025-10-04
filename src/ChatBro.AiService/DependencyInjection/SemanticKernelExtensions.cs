@@ -33,7 +33,8 @@ public static class SemanticKernelExtensions
 
             kernelBuilder.Services.ProxyScoped<RestaurantsServiceClient>(appServices);
             kernelBuilder.Plugins
-                .AddFromType<RestaurantsPlugin>();
+                .AddFromType<RestaurantsPlugin>()
+                .AddFromType<DateTimePlugin>();
 
             var loggingFilter = new LoggingFilter(appServices.GetRequiredService<ILogger<LoggingFilter>>());
             kernelBuilder.Services

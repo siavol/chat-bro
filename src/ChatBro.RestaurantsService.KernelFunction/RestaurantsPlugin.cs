@@ -8,12 +8,12 @@ namespace ChatBro.RestaurantsService.KernelFunction;
 public class RestaurantsPlugin(RestaurantsServiceClient client)
 {
     [KernelFunction("get_restaurants")]
-    [Description("Retrieves the list of nearby restaurants with daily menu.")]
-    public async Task<Restaurant[]> GetRestaurants()
+    [Description("Retrieves the list of nearby restaurants with daily menu for the given date.")]
+    public async Task<Restaurant[]> GetRestaurants(DateOnly date)
     {
         using var span = Activity.Current?.Source.StartActivity();
 
-        var restaurants = await client.GetRestaurantsAsync();
+        var restaurants = await client.GetRestaurantsAsync(date);
         return restaurants
             .Where(RestaurantsHasMenuItems)
             .ToArray();

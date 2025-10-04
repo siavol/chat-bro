@@ -11,14 +11,17 @@ public class LounaatController(
     ILogger<LounaatController> logger) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> Get([FromQuery] DateOnly? date)
     {
-        logger.LogInformation("Get restaurants from site");
-        var html = await scrapper.Scrape();
+        var dateToUse = date ?? DateOnly.FromDateTime(DateTime.Now);
+        logger.LogInformation("Get restaurants from site for date {Date}", dateToUse);
+
+        var html = await scrapper.Scrape(dateToUse);
         var restaurants = parser.Parse(html);
         logger.LogDebug("Found {Count} restaurants", restaurants.Count);
 
         var result = new { restaurants };
         return Ok(result);
     }
+
 }
