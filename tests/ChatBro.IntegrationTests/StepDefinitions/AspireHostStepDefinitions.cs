@@ -16,6 +16,11 @@ public class AspireHostStepDefinitions(HttpContext httpContext)
         {
             yield return $"--telegram-token={telegramToken}";
         }
+
+        if (Environment.GetEnvironmentVariable("OPENAI-API-KEY") is { Length: > 0 } openAiApiKey)
+        {
+            yield return $"--openai-api-key={openAiApiKey}";
+        }
     }
 
     [BeforeTestRun]

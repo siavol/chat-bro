@@ -33,6 +33,7 @@ jobs:
     - name: Test
       env:
         CHATBRO_TELEGRAM_TOKEN: ${{ secrets.CHATBRO_TELEGRAM_TOKEN }}
+        OPENAI-API-KEY: dummy
       run: dotnet test --configuration Release --no-build --verbosity normal
 
     - name: Upload HTML report
