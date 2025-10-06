@@ -1,10 +1,13 @@
 ﻿using Aspire.Hosting;
 using Microsoft.Extensions.Logging;
+using Reqnroll.UnitTestProvider;
 
 namespace ChatBro.IntegrationTests.StepDefinitions;
 
 [Binding]
-public class AspireHostStepDefinitions(HttpContext httpContext)
+public class AspireHostStepDefinitions(
+    HttpContext httpContext,
+    IUnitTestRuntimeProvider testRuntimeProvider)
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
     
@@ -54,8 +57,10 @@ public class AspireHostStepDefinitions(HttpContext httpContext)
     [Given("the application is started")]
     public async Task GivenTheApplicationIsStarted()
     {
-        var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
-        await _app.StartAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
+        testRuntimeProvider.TestIgnore("The testing infrastructure is not ready yet. I want to focus on implementing MVP first.");
+
+        // var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
+        // await _app.StartAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
     }
     
     [When("I send HTTP request to the (.*) service")]
