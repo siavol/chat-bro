@@ -29,6 +29,7 @@ public class AspireHostStepDefinitions(
     [BeforeTestRun]
     public static async Task StartApp()
     {
+        // TODO: restore when the testing infrastructure is ready
         // var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
         // var appHost = await DistributedApplicationTestingBuilder
         //     .CreateAsync<Projects.ChatBro_AppHost>(GetAppHostArgs().ToArray(), cancellationToken);
@@ -51,7 +52,8 @@ public class AspireHostStepDefinitions(
     [AfterTestRun]
     public static void StopApp()
     {
-        _app.Dispose();
+        // TODO: restore when the testing infrastructure is ready
+        // _app.Dispose();
     }
 
     [Given("the application is started")]
