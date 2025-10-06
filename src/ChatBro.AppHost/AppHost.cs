@@ -1,5 +1,6 @@
 #pragma warning disable ASPIREINTERACTION001
 
+using Aspire.Hosting.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Projects;
 
@@ -11,10 +12,13 @@ var restaurants = builder.AddProject<ChatBro_RestaurantsService>("chatbro-restau
 
 var openAiApiKey = CreateUiSecretParameter(
     "openai-api-key", description: "OpenAI API Key.", placeholder: "Enter api key");
+var openAi = builder.AddOpenAI("openai")
+    .WithApiKey(openAiApiKey);
 var openAiModel = builder.AddParameter("openai-model", value: "gpt-5-nano", publishValueAsDefault: true);
 var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
-    .WithEnvironment("OpenAI__ApiKey", openAiApiKey)
+    .WithReference(openAi)
     .WithEnvironment("OpenAI__Model", openAiModel)
+    .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
     .WithReference(restaurants).WaitFor(restaurants);
 
 

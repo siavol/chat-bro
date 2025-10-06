@@ -11,6 +11,11 @@ public static class SemanticKernelExtensions
 {
     public static IHostApplicationBuilder AddSemanticKernel(this IHostApplicationBuilder appBuilder)
     {
+        AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
+        AppContext.SetSwitch("OpenAI.Experimental.EnableOpenTelemetry", true);
+        
+        appBuilder.AddOpenAIClient("openai");
+        
         appBuilder.Services.AddOptions<OpenAiSettings>()
             .BindConfiguration("OpenAI")
             .ValidateDataAnnotations()
@@ -18,16 +23,10 @@ public static class SemanticKernelExtensions
         appBuilder.Services.AddSingleton(appServices =>
         {
             var kernelBuilder = Kernel.CreateBuilder();
-
-            // TODO: improve logging to make it exported
-            // var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            // var logger = sp.GetRequiredService(typeof(ILogger<>));
-            // kernelBuilder.Services.AddSingleton(loggerFactory);
-            // kernelBuilder.Services.AddSingleton(logger);
             kernelBuilder.Services.AddLogging();
 
             var openAiSettings = appServices.GetRequiredService<IOptions<OpenAiSettings>>();
-            var openAiClient = new OpenAIClient(openAiSettings.Value.ApiKey);
+            var openAiClient = appServices.GetRequiredService<OpenAIClient>();
             kernelBuilder.AddOpenAIChatClient(openAiSettings.Value.Model, openAiClient);
             kernelBuilder.AddOpenAIChatCompletion(openAiSettings.Value.Model, openAiClient);
 
@@ -56,10 +55,10 @@ public static class SemanticKernelExtensions
     }
 }
 
+// TODO: it now confuses with the Aspire OpenAI settings, needs to be reorganised 
 public class OpenAiSettings
 {
     public required string Model { get; init; }
-    public required string ApiKey { get; init; }
 }
 
 #pragma warning restore SKEXP0070
