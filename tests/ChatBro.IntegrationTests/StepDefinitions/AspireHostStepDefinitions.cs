@@ -29,23 +29,23 @@ public class AspireHostStepDefinitions(
     [BeforeTestRun]
     public static async Task StartApp()
     {
-        var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.ChatBro_AppHost>(GetAppHostArgs().ToArray(), cancellationToken);
-        
-        appHost.Services.AddLogging(logging =>
-        {
-            logging.SetMinimumLevel(LogLevel.Debug);
-            // Override the logging filters from the app's configuration
-            logging.AddFilter(appHost.Environment.ApplicationName, LogLevel.Debug);
-            logging.AddFilter("Aspire.", LogLevel.Debug);
-        });
-        appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
-        {
-            clientBuilder.AddStandardResilienceHandler();
-        });
-    
-        _app = await appHost.BuildAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
+        // var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
+        // var appHost = await DistributedApplicationTestingBuilder
+        //     .CreateAsync<Projects.ChatBro_AppHost>(GetAppHostArgs().ToArray(), cancellationToken);
+        //
+        // appHost.Services.AddLogging(logging =>
+        // {
+        //     logging.SetMinimumLevel(LogLevel.Debug);
+        //     // Override the logging filters from the app's configuration
+        //     logging.AddFilter(appHost.Environment.ApplicationName, LogLevel.Debug);
+        //     logging.AddFilter("Aspire.", LogLevel.Debug);
+        // });
+        // appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
+        // {
+        //     clientBuilder.AddStandardResilienceHandler();
+        // });
+        //
+        // _app = await appHost.BuildAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
     }
 
     [AfterTestRun]
