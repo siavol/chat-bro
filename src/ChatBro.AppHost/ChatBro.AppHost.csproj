@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.1" />
     <PackageReference Include="Aspire.Hosting.Docker" Version="9.5.1-preview.1.25502.11" />
+    <PackageReference Include="Aspire.Hosting.OpenAI" Version="9.5.1-preview.1.25502.11" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChatBro.AiService\ChatBro.AiService.csproj" />

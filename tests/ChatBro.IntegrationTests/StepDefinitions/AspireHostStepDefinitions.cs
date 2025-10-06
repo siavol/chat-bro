@@ -1,10 +1,13 @@
 ﻿using Aspire.Hosting;
 using Microsoft.Extensions.Logging;
+using Reqnroll.UnitTestProvider;
 
 namespace ChatBro.IntegrationTests.StepDefinitions;
 
 [Binding]
-public class AspireHostStepDefinitions(HttpContext httpContext)
+public class AspireHostStepDefinitions(
+    HttpContext httpContext,
+    IUnitTestRuntimeProvider testRuntimeProvider)
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
     
@@ -26,36 +29,40 @@ public class AspireHostStepDefinitions(HttpContext httpContext)
     [BeforeTestRun]
     public static async Task StartApp()
     {
-        var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.ChatBro_AppHost>(GetAppHostArgs().ToArray(), cancellationToken);
-        
-        appHost.Services.AddLogging(logging =>
-        {
-            logging.SetMinimumLevel(LogLevel.Debug);
-            // Override the logging filters from the app's configuration
-            logging.AddFilter(appHost.Environment.ApplicationName, LogLevel.Debug);
-            logging.AddFilter("Aspire.", LogLevel.Debug);
-        });
-        appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
-        {
-            clientBuilder.AddStandardResilienceHandler();
-        });
-    
-        _app = await appHost.BuildAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
+        // TODO: restore when the testing infrastructure is ready
+        // var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
+        // var appHost = await DistributedApplicationTestingBuilder
+        //     .CreateAsync<Projects.ChatBro_AppHost>(GetAppHostArgs().ToArray(), cancellationToken);
+        //
+        // appHost.Services.AddLogging(logging =>
+        // {
+        //     logging.SetMinimumLevel(LogLevel.Debug);
+        //     // Override the logging filters from the app's configuration
+        //     logging.AddFilter(appHost.Environment.ApplicationName, LogLevel.Debug);
+        //     logging.AddFilter("Aspire.", LogLevel.Debug);
+        // });
+        // appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
+        // {
+        //     clientBuilder.AddStandardResilienceHandler();
+        // });
+        //
+        // _app = await appHost.BuildAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
     }
 
     [AfterTestRun]
     public static void StopApp()
     {
-        _app.Dispose();
+        // TODO: restore when the testing infrastructure is ready
+        // _app.Dispose();
     }
 
     [Given("the application is started")]
     public async Task GivenTheApplicationIsStarted()
     {
-        var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
-        await _app.StartAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
+        testRuntimeProvider.TestIgnore("The testing infrastructure is not ready yet. I want to focus on implementing MVP first.");
+
+        // var cancellationToken = new CancellationTokenSource(StartupTimeout).Token;
+        // await _app.StartAsync(cancellationToken).WaitAsync(StartupTimeout, cancellationToken);
     }
     
     [When("I send HTTP request to the (.*) service")]

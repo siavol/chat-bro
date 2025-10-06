@@ -6,7 +6,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
 
 builder.Services.AddHttpClient<RestaurantsServiceClient>(
     static client => client.BaseAddress = new Uri("https+http://chatbro-restaurants"));
