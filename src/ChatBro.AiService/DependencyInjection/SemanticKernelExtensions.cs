@@ -55,7 +55,7 @@ public static class SemanticKernelExtensions
     }
 }
 
-// TODO: it now confuses with the Aspire OpenAI settings, needs to be reorganised 
+// TODO: it now confuses with the Aspire OpenAI settings, needs to be reorganized 
 public class OpenAiSettings
 {
     public required string Model { get; init; }
