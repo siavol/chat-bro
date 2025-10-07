@@ -14,8 +14,9 @@ public class TelegramServiceOptions
 }
 
 public class TelegramService(
-    AiServiceClient aiServiceClient,
     IOptions<TelegramServiceOptions> options,
+    AiServiceClient aiServiceClient,
+    MessageSplitter splitter,
     ILogger<TelegramService> logger,
     ActivitySource activitySource) 
     : IHostedService
@@ -46,9 +47,14 @@ public class TelegramService(
             }
 
             var replyText = await aiServiceClient.ChatAsync(message.Text);
+            logger.LogInformation("AI generated response, length {Length}", replyText.Length);
 
-            logger.LogInformation("Sending response to telegram");
-            await _telegramBot.SendMessage(message.Chat, replyText);
+            foreach (var replyMessage in splitter.SplitSmart(replyText))
+            {
+                logger.LogInformation("Sending response to telegram");
+                await _telegramBot.SendMessage(message.Chat, replyMessage);
+            }
+            logger.LogInformation("Sent full response to telegram");
         }
         catch (ApiRequestException e)
         {
