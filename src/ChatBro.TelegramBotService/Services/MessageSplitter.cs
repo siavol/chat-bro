@@ -16,31 +16,24 @@ public class MessageSplitter
     /// <param name="text">Full text message</param>
     /// <param name="limit">Maximum Telegram message length</param>
     /// <param name="preferred">Preferred split length before searching for natural breakpoint</param>
+    /// <returns>IEnumerable of message parts</returns>
     // ReSharper disable once MemberCanBeMadeStatic.Global
-    public List<string> SplitSmart(string text, int limit = MessageLengthLimit, int preferred = MessageLengthPreferred)
+    public IEnumerable<string> SplitSmart(string text, int limit = MessageLengthLimit, int preferred = MessageLengthPreferred)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
         if (limit > TelegramMessageLimit) throw new ArgumentOutOfRangeException(nameof(limit), $"Limit cannot exceed {TelegramMessageLimit} characters.");
-        
-        var parts = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return parts;
-        }
 
         while (text.Length > limit)
         {
             var splitAt = FindBestSplitPosition(text, limit, preferred);
-            parts.Add(text[..splitAt].Trim());
+            yield return text[..splitAt].Trim();
             text = text[splitAt..].TrimStart();
         }
 
         if (!string.IsNullOrWhiteSpace(text))
         {
-            parts.Add(text);
+            yield return text;
         }
-
-        return parts;
     }
 
     private static int FindBestSplitPosition(string text, int limit, int preferred)
