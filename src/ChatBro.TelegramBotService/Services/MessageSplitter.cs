@@ -2,6 +2,7 @@
 
 public class MessageSplitter
 {
+    private const int TelegramMessageLimit = 4096;
     private const int MessageLengthLimit = 4000;
     private const int MessageLengthPreferred = 3800;
     private static readonly char[] SentenceBoundaries = ['.', '!', '?', ';', ':'];
@@ -9,7 +10,8 @@ public class MessageSplitter
     /// <summary>
     /// Splits a long text into multiple Telegram messages, 
     /// preferring natural breakpoints (paragraphs, sentences, words)
-    /// while respecting the Telegram 4096 character limit.
+    /// while respecting the Telegram message character limit.
+    /// Telegram message limit is 4096 characters, but we use lower value to leave some margin.
     /// </summary>
     /// <param name="text">Full text message</param>
     /// <param name="limit">Maximum Telegram message length</param>
@@ -17,6 +19,8 @@ public class MessageSplitter
     // ReSharper disable once MemberCanBeMadeStatic.Global
     public List<string> SplitSmart(string text, int limit = MessageLengthLimit, int preferred = MessageLengthPreferred)
     {
+        if (limit > TelegramMessageLimit) throw new ArgumentOutOfRangeException(nameof(limit), $"Limit cannot exceed {TelegramMessageLimit} characters.");
+        
         var parts = new List<string>();
 
         if (string.IsNullOrWhiteSpace(text))
