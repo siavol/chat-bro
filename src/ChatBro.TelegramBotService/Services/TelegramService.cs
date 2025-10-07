@@ -50,12 +50,26 @@ public class TelegramService(
             logger.LogInformation("Sending response to telegram");
             await _telegramBot.SendMessage(message.Chat, replyText);
         }
+        catch (ApiRequestException e)
+        {
+            logger.LogError(e, "Telegram API returned error {ErrorMessage} with error code {ErrorCode}", 
+                e.Message, e.ErrorCode);
+            activity.SetException(e);
+            await SendErrorMessageToChat(message.Chat, e);
+            throw;
+        }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to process telegram message");
             activity.SetException(e);
+            await SendErrorMessageToChat(message.Chat, e);
             throw;
         }        
+    }
+
+    private async Task SendErrorMessageToChat(Chat chat, Exception e)
+    {
+        await _telegramBot.SendMessage(chat, $"Sorry, I encountered an error while processing your message. Error: {e.Message}");
     }
 
     Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
