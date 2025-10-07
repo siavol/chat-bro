@@ -4,6 +4,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using ChatBro.TelegramBotService.Clients;
+using Telegram.Bot.Exceptions;
 
 namespace ChatBro.TelegramBotService.Services;
 
@@ -43,7 +44,7 @@ public class TelegramService(
                 await _telegramBot.SendMessage(message.Chat, "Could you repeat? I received empty message.");
                 return;
             }
-        
+
             var replyText = await aiServiceClient.ChatAsync(message.Text);
 
             logger.LogInformation("Sending response to telegram");
@@ -52,16 +53,7 @@ public class TelegramService(
         catch (Exception e)
         {
             logger.LogError(e, "Failed to process telegram message");
-            // TODO: move to extension method
-            activity?.SetStatus(ActivityStatusCode.Error, e.Message);
-            activity?.AddEvent(new ActivityEvent(
-                "exception",
-                tags: new ActivityTagsCollection
-                {
-                    { "exception.type", e.GetType().FullName },
-                    { "exception.message", e.Message },
-                    { "exception.stacktrace", e.ToString() }
-                }));
+            activity.SetException(e);
             throw;
         }        
     }
