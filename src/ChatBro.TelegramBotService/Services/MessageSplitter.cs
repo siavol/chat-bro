@@ -44,6 +44,11 @@ public class MessageSplitter
         var start = Math.Min(preferred, length - 1);
         var end = Math.Min(limit, length - 1);
 
+        // Ensure start < end to avoid negative count in LastIndexOf
+        if (start >= end)
+        {
+            return limit; // Fallback: hard split at limit
+        }
         // Prefer double newlines (paragraphs)
         var splitAt = text.LastIndexOf("\n\n", start, end - start, StringComparison.Ordinal);
         if (splitAt != -1)
