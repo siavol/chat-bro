@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
+﻿
+using System.Diagnostics;
 
-namespace ChatBro.TelegramBotService;
+namespace ChatBro.TelegramBotService.Observability;
 
 public static class ActivityExtensions
 {
@@ -16,6 +17,15 @@ public static class ActivityExtensions
                 { "exception.message", exception.Message },
                 { "exception.stacktrace", exception.ToString() }
             }));
+    }
+
+    /// <summary>
+    /// Marks the activity as ignored for export (clears Recorded flag).
+    /// </summary>
+    public static void Ignore(this Activity? activity)
+    {
+        if (activity == null) return;
+        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
     }
 }
 

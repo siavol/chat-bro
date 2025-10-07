@@ -5,6 +5,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using ChatBro.TelegramBotService.Clients;
 using Telegram.Bot.Exceptions;
+using ChatBro.TelegramBotService.Observability;
 
 namespace ChatBro.TelegramBotService.Services;
 
@@ -18,7 +19,7 @@ public class TelegramService(
     AiServiceClient aiServiceClient,
     MessageSplitter splitter,
     ILogger<TelegramService> logger,
-    ActivitySource activitySource) 
+    ActivitySource activitySource)
     : IHostedService
 {
     private TelegramBotClient _telegramBot = null!;
@@ -58,7 +59,7 @@ public class TelegramService(
         }
         catch (ApiRequestException e)
         {
-            logger.LogError(e, "Telegram API returned error {ErrorMessage} with error code {ErrorCode}", 
+            logger.LogError(e, "Telegram API returned error {ErrorMessage} with error code {ErrorCode}",
                 e.Message, e.ErrorCode);
             activity.SetException(e);
             await SendErrorMessageToChat(message.Chat, e);
@@ -70,7 +71,7 @@ public class TelegramService(
             activity.SetException(e);
             await SendErrorMessageToChat(message.Chat, e);
             throw;
-        }        
+        }
     }
 
     private async Task SendErrorMessageToChat(Chat chat, Exception e)
