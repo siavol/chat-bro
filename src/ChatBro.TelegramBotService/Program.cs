@@ -19,7 +19,9 @@ builder.Services.AddOptions<TelegramServiceOptions>()
     .BindConfiguration("Telegram")
     .ValidateDataAnnotations()
     .ValidateOnStart();
-builder.Services.AddHostedService<TelegramService>();
+builder.Services
+    .AddSingleton<MessageSplitter>()
+    .AddHostedService<TelegramService>();
 
 var app = builder.Build();
 
