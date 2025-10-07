@@ -9,21 +9,19 @@ namespace ChatBro.TelegramBotService.Observability
         {
             var destination = activity.GetTagItem("server.address") as string;
             var method = activity.GetTagItem("http.request.method") as string;
-            var urlTag = activity.GetTagItem("url.full");
             var statusCode = activity.GetTagItem("http.response.status_code") switch
             {
                 int i => i.ToString(),
                 string s => s,
                 _ => null
             };
-            var hasError = activity.Status == ActivityStatusCode.Error;
 
-            // Adjust the path as needed
             if (destination == "api.telegram.org"
                 && method == "POST"
                 && statusCode == "200"
-                && urlTag is string url && url.EndsWith("/getUpdates", StringComparison.OrdinalIgnoreCase)
-                && !hasError)
+                && activity.GetTagItem("url.full") is string url
+                && url.EndsWith("/getUpdates", StringComparison.OrdinalIgnoreCase)
+                && activity.Status != ActivityStatusCode.Error)
             {
                 activity.Ignore();
             }
