@@ -3,6 +3,7 @@ using OpenTelemetry.Trace;
 
 using ChatBro.TelegramBotService.Clients;
 using ChatBro.TelegramBotService.Services;
+using ChatBro.TelegramBotService.Observability;
 
 var builder = WebApplication.CreateBuilder(args);
 
