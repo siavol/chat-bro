@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using OpenTelemetry.Trace;
+
 using ChatBro.TelegramBotService.Clients;
 using ChatBro.TelegramBotService.Services;
 
@@ -11,6 +13,14 @@ builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 
 builder.Services.AddSingleton(new ActivitySource("ChatBro.TelegramBotService"));
+
+// Add OpenTelemetry tracing and register the custom filter processor
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddProcessor(new TelegramApiFilterProcessor());
+    });
 
 builder.Services.AddHttpClient<AiServiceClient>(
     static client => client.BaseAddress = new("https+http://chatbro-ai-service"));
