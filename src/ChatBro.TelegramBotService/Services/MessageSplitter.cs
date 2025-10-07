@@ -48,25 +48,25 @@ public class MessageSplitter
         var end = Math.Min(limit, length - 1);
 
         // Prefer double newlines (paragraphs)
-        var splitAt = text.LastIndexOf("\n\n", end, end - start, StringComparison.Ordinal);
+        var splitAt = text.LastIndexOf("\n\n", start, end - start, StringComparison.Ordinal);
         if (splitAt != -1)
             return splitAt + 2;
 
         // Then single newline (line break)
-        splitAt = text.LastIndexOf('\n', end, end - start);
+        splitAt = text.LastIndexOf('\n', start, end - start);
         if (splitAt != -1)
             return splitAt + 1;
 
         // Then punctuation (sentence boundary)
         foreach (var ch in SentenceBoundaries)
         {
-            splitAt = text.LastIndexOf(ch, end, end - start);
+            splitAt = text.LastIndexOf(ch, start, end - start);
             if (splitAt != -1)
                 return splitAt + 1;
         }
 
         // Then space (word boundary)
-        splitAt = text.LastIndexOf(' ', end, end - start);
+        splitAt = text.LastIndexOf(' ', start, end - start);
         return splitAt != -1 
             ? splitAt :
             limit; // Fallback: hard split at limit

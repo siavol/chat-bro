@@ -80,7 +80,7 @@ public class MessageSplitterTests
         var text = new string('a', 3800) + " " + new string('b', 1000);
         var result = _splitter.SplitSmart(text, 4000, 3800);
         Assert.Equal(2, result.Count);
-        Assert.EndsWith("b", result[0]);
+        Assert.EndsWith("a", result[0]);
     }
 
     [Fact]
