@@ -7,7 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services
-    .AddTransient<ChatService>()
+    .AddScoped<ChatService>()
+    .AddScoped<IContextProvider, ContextProvider>()
     .AddControllers();
 
 builder.Services.AddHttpClient<RestaurantsServiceClient>(

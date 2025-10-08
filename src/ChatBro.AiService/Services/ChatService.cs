@@ -8,6 +8,7 @@ namespace ChatBro.AiService.Services
 {
     public class ChatService(
         Kernel kernel,
+        IContextProvider contextProvider,
         ILogger<ChatService> logger
     )
     {
@@ -21,6 +22,14 @@ namespace ChatBro.AiService.Services
             };
 
             var history = new ChatHistory();
+
+            var systemContext = await contextProvider.GetSystemContextAsync();
+            if (!string.IsNullOrWhiteSpace(systemContext))
+            {
+                // Add system context to the chat history so the model receives processing rules and expectations
+                history.AddSystemMessage(systemContext);
+            }
+
             history.AddUserMessage(message);
 
             logger.LogInformation("Sending chat request");
