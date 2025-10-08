@@ -9,7 +9,7 @@ namespace ChatBro.RestaurantsService.Clients
         IMemoryCache cache,
         ILogger<LounaatClient> logger)
     {
-        private static readonly TimeSpan DefaultTtl = TimeSpan.FromDays(5);
+        private static readonly TimeSpan DefaultTtl = TimeSpan.FromDays(1);
 
         public async Task<IList<Restaurant>> GetRestaurants(DateOnly date)
         {
