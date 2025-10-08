@@ -1,6 +1,8 @@
-@ChatBro.RestaurantsService_HostAddress = http://localhost:5172
+@RestaurantsService_HostAddress = http://localhost:5172
 
-GET {{ChatBro.RestaurantsService_HostAddress}}/weatherforecast/
+###
+
+GET {{RestaurantsService_HostAddress}}/lounaat?date=2025-10-09
 Accept: application/json
 
 ###
