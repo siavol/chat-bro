@@ -9,7 +9,8 @@ builder.Services.AddOpenApi();
 
 builder.Services
     .AddTransient<LounaatScrapper>()
-    .AddTransient<LounaatParser>();
+    .AddTransient<LounaatParser>()
+    .AddTransient<LounaatClient>();
 
 var app = builder.Build();
 
