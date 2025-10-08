@@ -1,11 +1,14 @@
 using ChatBro.AiService.DependencyInjection;
+using ChatBro.AiService.Services;
 using ChatBro.RestaurantsService.KernelFunction;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddTransient<ChatService>()
+    .AddControllers();
 
 builder.Services.AddHttpClient<RestaurantsServiceClient>(
     static client => client.BaseAddress = new Uri("https+http://chatbro-restaurants"));
