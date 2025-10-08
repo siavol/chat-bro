@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services
+    .AddMemoryCache()
     .AddTransient<LounaatScrapper>()
     .AddTransient<LounaatParser>()
     .AddTransient<LounaatClient>();
