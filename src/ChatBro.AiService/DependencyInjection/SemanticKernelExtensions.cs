@@ -16,8 +16,8 @@ public static class SemanticKernelExtensions
         
         appBuilder.AddOpenAIClient("openai");
         
-        appBuilder.Services.AddOptions<OpenAiSettings>()
-            .BindConfiguration("OpenAI")
+        appBuilder.Services.AddOptions<ChatSettings>()
+            .BindConfiguration("Chat")
             .ValidateDataAnnotations()
             .ValidateOnStart();
         appBuilder.Services.AddSingleton(appServices =>
@@ -25,10 +25,10 @@ public static class SemanticKernelExtensions
             var kernelBuilder = Kernel.CreateBuilder();
             kernelBuilder.Services.AddLogging();
 
-            var openAiSettings = appServices.GetRequiredService<IOptions<OpenAiSettings>>();
+            var chatSettings = appServices.GetRequiredService<IOptions<ChatSettings>>();
             var openAiClient = appServices.GetRequiredService<OpenAIClient>();
-            kernelBuilder.AddOpenAIChatClient(openAiSettings.Value.Model, openAiClient);
-            kernelBuilder.AddOpenAIChatCompletion(openAiSettings.Value.Model, openAiClient);
+            kernelBuilder.AddOpenAIChatClient(chatSettings.Value.AiModel, openAiClient);
+            kernelBuilder.AddOpenAIChatCompletion(chatSettings.Value.AiModel, openAiClient);
 
             kernelBuilder.Services.ProxyScoped<RestaurantsServiceClient>(appServices);
             kernelBuilder.Plugins
@@ -55,10 +55,9 @@ public static class SemanticKernelExtensions
     }
 }
 
-// TODO: it now confuses with the Aspire OpenAI settings, needs to be reorganized 
-public class OpenAiSettings
+public class ChatSettings
 {
-    public required string Model { get; init; }
+    public required string AiModel { get; init; }
 }
 
 #pragma warning restore SKEXP0070

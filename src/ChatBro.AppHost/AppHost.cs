@@ -17,7 +17,7 @@ var openAi = builder.AddOpenAI("openai")
 var openAiModel = builder.AddParameter("openai-model", value: "gpt-5-nano", publishValueAsDefault: true);
 var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
     .WithReference(openAi)
-    .WithEnvironment("OpenAI__Model", openAiModel)
+    .WithEnvironment("Chat__AiModel", openAiModel)
     .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
     .WithReference(restaurants).WaitFor(restaurants);
 
