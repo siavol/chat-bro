@@ -17,4 +17,9 @@
       <ProjectReference Include="..\ChatBro.ServiceDefaults\ChatBro.ServiceDefaults.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Content Include="contexts\**\*.*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>

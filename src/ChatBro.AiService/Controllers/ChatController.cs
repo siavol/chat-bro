@@ -1,18 +1,12 @@
-﻿using System.Diagnostics;
+﻿using ChatBro.AiService.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.AI;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using TextContent = Microsoft.SemanticKernel.TextContent;
 
 namespace ChatBro.AiService.Controllers;
 
 [ApiController]
 [Route("chat")]
-public class ChatController(Kernel kernel, ILogger<ChatController> logger) : ControllerBase
+public class ChatController(ChatService chatService) : ControllerBase
 {
-    private readonly IChatCompletionService _chatCompletion = kernel.GetRequiredService<IChatCompletionService>();
-
     [HttpPost]
     public async Task<IActionResult> Chat([FromBody] ChatRequest request)
     {
@@ -25,42 +19,8 @@ public class ChatController(Kernel kernel, ILogger<ChatController> logger) : Con
             return BadRequest("Chat request Message can not be null or empty.");
         }
 
-        PromptExecutionSettings promptExecutionSettings = new()
-        {
-            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-        };
-
-        var history = new ChatHistory();
-        history.AddUserMessage(request.Message);
-
-        logger.LogInformation("Sending chat request");
-        var result = await _chatCompletion.GetChatMessageContentAsync(history, promptExecutionSettings, kernel);
-        logger.LogInformation("Received chat response: {Metadata}", result.Metadata);
-        AddChangeResponseReceivedEvent(result);
-
-        var responseItem = result.Items.OfType<TextContent>().Single();
-        var responseText = responseItem.Text!;
-        if (string.IsNullOrWhiteSpace(responseText))
-        {
-            throw new InvalidOperationException("No text response from the model!");
-        }
-
+        var responseText = await chatService.GetChatResponseAsync(request.Message);
         return Ok(new ChatResponse(responseText));
-    }
-    
-    private static void AddChangeResponseReceivedEvent(ChatMessageContent result)
-    {
-        var eventTags = new ActivityTagsCollection();
-        if (result.Metadata != null &&
-            result.Metadata.TryGetValue("Usage", out var usage) &&
-            usage is UsageDetails usageDetails)
-        {
-            eventTags.Add("Usage.InputTokenCount", usageDetails.InputTokenCount);
-            eventTags.Add("Usage.OutputTokenCount", usageDetails.OutputTokenCount);
-            eventTags.Add("Usage.TotalTokenCount", usageDetails.TotalTokenCount);
-        }
-        ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
-        Activity.Current?.AddEvent(e);
     }
 
     public record ChatRequest(string Message);
