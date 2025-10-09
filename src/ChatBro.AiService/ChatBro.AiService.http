@@ -1,0 +1,12 @@
+@AiService_HostAddress = http://localhost:5139
+
+###
+
+POST {{AiService_HostAddress}}/chat
+Content-Type: application/json
+
+{
+    "message": "Hey bro whats up?"
+}
+
+###
