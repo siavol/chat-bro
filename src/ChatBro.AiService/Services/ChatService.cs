@@ -47,7 +47,6 @@ namespace ChatBro.AiService.Services
             return responseText;
         }
 
-
         private static void AddChangeResponseReceivedEvent(ChatMessageContent result)
         {
             var eventTags = new ActivityTagsCollection();
@@ -62,9 +61,5 @@ namespace ChatBro.AiService.Services
             ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
             Activity.Current?.AddEvent(e);
         }
-    }
-
-    internal interface IKernel
-    {
     }
 }
