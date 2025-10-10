@@ -3,10 +3,17 @@ using ChatBro.RestaurantsService.Jobs;
 using Coravel;
 
 using System.Diagnostics;
+using ChatBro.RestaurantsService.Configuration;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+builder.Services.AddOptions<SchedulerSettings>()
+    .BindConfiguration("Scheduler")
+    .ValidateOnStart()
+    .ValidateDataAnnotations();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -33,11 +40,10 @@ app.MapControllers();
 
 app.Services.UseScheduler(scheduler =>
 {
-    // warmup job: weekdays at 09:00
+    var schedulerSettings = app.Services.GetRequiredService<IOptions<SchedulerSettings>>().Value;
     scheduler
         .Schedule<WarmupLounaatCacheJob>()
-        .EveryMinute().Once();
-        // .Cron("0 9 * * 1-5");
+        .Cron(schedulerSettings.WarmupJobCron);
 });
 
 app.Run();
