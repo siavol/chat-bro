@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ChatBro.ServiceDefaults;
 using OpenTelemetry;
 
 namespace ChatBro.TelegramBotService.Observability

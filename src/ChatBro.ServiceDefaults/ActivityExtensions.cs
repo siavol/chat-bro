@@ -1,7 +1,7 @@
 ﻿
 using System.Diagnostics;
 
-namespace ChatBro.TelegramBotService.Observability;
+namespace ChatBro.ServiceDefaults;
 
 public static class ActivityExtensions
 {

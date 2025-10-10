@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using ChatBro.TelegramBotService.Clients;
 using Telegram.Bot.Exceptions;
-using ChatBro.TelegramBotService.Observability;
+using ChatBro.ServiceDefaults;
 
 namespace ChatBro.TelegramBotService.Services;
 
