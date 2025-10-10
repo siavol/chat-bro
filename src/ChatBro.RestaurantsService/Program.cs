@@ -2,6 +2,8 @@ using ChatBro.RestaurantsService.Clients;
 using ChatBro.RestaurantsService.Jobs;
 using Coravel;
 
+using System.Diagnostics;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -10,14 +12,13 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services
+    .AddSingleton(new ActivitySource("ChatBro.RestaurantsService"))
     .AddMemoryCache()
     .AddScheduler()
     .AddTransient<LounaatScrapper>()
     .AddTransient<LounaatParser>()
-    .AddTransient<LounaatClient>();
-
-// Register warmup job
-builder.Services.AddTransient<ChatBro.RestaurantsService.Jobs.WarmupLounaatCacheJob>();
+    .AddTransient<LounaatClient>()
+    .AddTransient<WarmupLounaatCacheJob>();
 
 var app = builder.Build();
 

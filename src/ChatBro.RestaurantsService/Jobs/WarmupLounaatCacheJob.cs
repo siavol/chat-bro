@@ -1,24 +1,19 @@
-using Coravel.Invocable;
 using ChatBro.RestaurantsService.Clients;
+using System.Diagnostics;
 
 namespace ChatBro.RestaurantsService.Jobs;
 
 public class WarmupLounaatCacheJob(
     LounaatClient client,
-    ILogger<WarmupLounaatCacheJob> logger) : IInvocable
+    ILogger<WarmupLounaatCacheJob> logger,
+    ActivitySource activitySource) 
+    : JobBase<WarmupLounaatCacheJob>(logger, activitySource)
 {
-    public async Task Invoke()
+    protected override async Task ExecuteAsync()
     {
-        try
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            logger.LogInformation("Warmup job: fetching restaurants for {Date}", today);
-            var restaurants = await client.GetRestaurants(today);
-            logger.LogInformation("Warmup job: fetched {Count} restaurants for {Date}", restaurants?.Count ?? 0, today);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Warmup job failed");
-        }
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        Logger.LogInformation("Warmup job: fetching restaurants for {Date}", today);
+        var restaurants = await client.GetRestaurants(today);
+        Logger.LogInformation("Warmup job: fetched {Count} restaurants for {Date}", restaurants?.Count ?? 0, today);
     }
 }
