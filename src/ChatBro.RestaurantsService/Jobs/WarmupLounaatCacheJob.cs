@@ -13,7 +13,7 @@ public class WarmupLounaatCacheJob(
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
         Logger.LogInformation("Warmup job: fetching restaurants for {Date}", today);
-        var restaurants = await client.GetRestaurants(today);
+        var restaurants = await client.GetRestaurants(today, ignoreCache: true);
         Logger.LogInformation("Warmup job: fetched {Count} restaurants for {Date}", restaurants?.Count ?? 0, today);
     }
 }
