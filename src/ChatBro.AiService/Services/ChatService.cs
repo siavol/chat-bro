@@ -19,27 +19,23 @@ namespace ChatBro.AiService.Services
         private readonly IChatCompletionService _chatCompletion = kernel.GetRequiredService<IChatCompletionService>();
         private readonly DependencyInjection.ChatHistoryOptions _historyOptions = historyOptions.Value;
 
-        public async Task<string> GetChatResponseAsync(string message)
+        public async Task<string> GetChatResponseAsync(string message, string userId)
         {
             PromptExecutionSettings promptExecutionSettings = new()
             {
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
             };
 
-            // For Phase 1 use a single mock user id. Later this will be replaced with real per-channel/user keys.
-            const string sessionId = "mock-user-id";
-            var sessionKey = new CacheKey(sessionId);
-
-            var state = await GetOrCreateSessionAsync(sessionKey);
+            var state = await GetOrCreateSessionAsync(userId);
             await state.Lock.WaitAsync();
             try
             {
                 // Append the incoming user message to the session history
                 state.History.AddUserMessage(message);
 
-                logger.LogInformation("Sending chat request for session {SessionKey}", sessionKey);
+                logger.LogInformation("Sending chat request for user {UserId}", userId);
                 var result = await _chatCompletion.GetChatMessageContentAsync(state.History, promptExecutionSettings, kernel);
-                logger.LogInformation("Received chat response for session {SessionKey}: {Metadata}", sessionKey, result.Metadata);
+                logger.LogInformation("Received chat response for user {UserId}: {Metadata}", userId, result.Metadata);
                 AddChangeResponseReceivedEvent(result);
 
                 var responseItem = result.Items.OfType<TextContent>().Single();
@@ -63,8 +59,10 @@ namespace ChatBro.AiService.Services
             }
         }
 
-        private async Task<ChatSessionState> GetOrCreateSessionAsync(CacheKey key)
+        private async Task<ChatSessionState> GetOrCreateSessionAsync(string userId)
         {
+            var key = new CacheKey(userId);
+
             // Build cache entry options from settings
             var entryOptions = new MemoryCacheEntryOptions
             {

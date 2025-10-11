@@ -47,7 +47,9 @@ public class TelegramService(
                 return;
             }
 
-            var replyText = await aiServiceClient.ChatAsync(message.Text);
+            // Use the Telegram chat id as the user id for conversation scoping
+            var userId = message.Chat.Id.ToString();
+            var replyText = await aiServiceClient.ChatAsync(message.Text, userId);
             logger.LogInformation("AI generated response, length {Length}", replyText.Length);
 
             foreach (var replyMessage in splitter.SplitSmart(replyText))

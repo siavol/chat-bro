@@ -19,11 +19,11 @@ public class ChatController(ChatService chatService) : ControllerBase
             return BadRequest("Chat request Message can not be null or empty.");
         }
 
-        var responseText = await chatService.GetChatResponseAsync(request.Message);
+        var responseText = await chatService.GetChatResponseAsync(request.Message, request.UserId);
         return Ok(new ChatResponse(responseText));
     }
 
-    public record ChatRequest(string Message);
+    public record ChatRequest(string UserId, string Message);
 
     public record ChatResponse(string TextContent);
 }

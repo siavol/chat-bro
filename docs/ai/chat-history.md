@@ -41,25 +41,13 @@
 
 ## Phase 2 — Real multi-user support via Telegram / channels
 
-1. **Update API contracts**
-   - Extend `ChatController` request DTO to include `userId` (string) and optional `channel` with default `telegram`.
-   - Update validation and controller to pass `userId` to `ChatService`.
-2. **Propagate identifiers through services**
-   - Adjust `ChatService.GetChatResponseAsync` signature to accept `userId` (& optional channel) and use as cache key when calling history helpers.
-   - Ensure existing callers (tests, other services) provide the new parameter.
-3. **Telegram bot integration**
-   - In `TelegramService`, derive `userId` from Telegram chat update (e.g., `$"telegram:{chat.Id}"`).
-   - Update HTTP client calls to the AI service to include the derived `userId` field in the payload.
-4. **Enhance caching helpers**
-   - Replace hardcoded key with composite `<channel>:<userId>`.
-   - Optionally expose helper for manual reset (e.g., slash command) if needed later.
-5. **Concurrency & robustness**
-   - Verify per-session locking works with multiple simultaneous chats (unit tests simulating parallel requests).
-   - Ensure eviction scenarios are handled: on cache miss, new history is created seamlessly.
-6. **Testing & observability**
-   - Extend unit/integration tests for multiple user IDs to confirm histories stay isolated.
-   - Manual end-to-end test via Telegram to confirm multi-turn conversations retain context.
-   - Add logging/metrics for cache hits/misses if needed for monitoring.
+- Extend `ChatController` request DTO to include `userId` (string).
+- Update validation and controller to pass `userId` to `ChatService`.
+- Adjust `ChatService.GetChatResponseAsync` signature to accept `userId` (& optional channel) and use as cache key when calling history helpers.
+- Ensure existing callers (tests, other services) provide the new parameter.
+- In `TelegramService`, derive `userId` from Telegram chat update.
+- Update HTTP client calls to the AI service to include the derived `userId` field in the payload.
+- Replace hardcoded key with composite `<userId>`.
 
 ## Nice-to-haves (post-MVP)
 - Optional endpoint or bot command to clear a user’s history on demand.
