@@ -25,7 +25,7 @@
 2. **[DONE] Add configuration defaults**
    - Extend `appsettings.json` with `Chat:History` section (sliding TTL, absolute TTL, message/token limits).
    - Bind to a new `ChatHistoryOptions` class and register with options pattern.
-3. **Introduce history cache service**
+3. **[DONE] Introduce history cache service**
    - Inject `IMemoryCache` into `ChatService`.
    - Implement private helper to `GetOrCreateSession("mock-user-id")` returning a session wrapper containing `ChatHistory`, timestamps, and a `SemaphoreSlim` lock.
    - Use configured cache entry options (`MemoryCacheEntryOptions`) when creating the session.

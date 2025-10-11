@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using TextContent = Microsoft.SemanticKernel.TextContent;
@@ -7,12 +9,15 @@ using TextContent = Microsoft.SemanticKernel.TextContent;
 namespace ChatBro.AiService.Services
 {
     public class ChatService(
+        IOptions<DependencyInjection.ChatHistoryOptions> historyOptions,
         Kernel kernel,
         IContextProvider contextProvider,
+        IMemoryCache cache,
         ILogger<ChatService> logger
     )
     {
         private readonly IChatCompletionService _chatCompletion = kernel.GetRequiredService<IChatCompletionService>();
+        private readonly DependencyInjection.ChatHistoryOptions _historyOptions = historyOptions.Value;
 
         public async Task<string> GetChatResponseAsync(string message)
         {
@@ -23,12 +28,6 @@ namespace ChatBro.AiService.Services
 
             var history = new ChatHistory();
 
-            var systemContext = await contextProvider.GetSystemContextAsync();
-            if (!string.IsNullOrWhiteSpace(systemContext))
-            {
-                // Add system context to the chat history so the model receives processing rules and expectations
-                history.AddSystemMessage(systemContext);
-            }
 
             history.AddUserMessage(message);
 
@@ -47,6 +46,33 @@ namespace ChatBro.AiService.Services
             return responseText;
         }
 
+        private async Task<ChatSessionState> GetOrCreateSessionAsync(string key)
+        {
+            // Build cache entry options from settings
+            var entryOptions = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromMinutes(_historyOptions.SlidingExpirationMinutes),
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(_historyOptions.AbsoluteExpirationHours)
+            };
+
+            var state = await cache.GetOrCreateAsync(key, async cacheEntry =>
+            {
+                cacheEntry.SetOptions(entryOptions);
+
+                var newState = new ChatSessionState();
+                var systemContext = await contextProvider.GetSystemContextAsync();
+                if (!string.IsNullOrWhiteSpace(systemContext))
+                {
+                    // Add system context to the chat history so the model receives processing rules and expectations
+                    newState.History.AddSystemMessage(systemContext);
+                }
+
+                return newState;
+            });
+
+            return state ?? throw new InvalidOperationException("Failed to create or retrieve chat session state.");
+        }
+
         private static void AddChangeResponseReceivedEvent(ChatMessageContent result)
         {
             var eventTags = new ActivityTagsCollection();
@@ -60,6 +86,14 @@ namespace ChatBro.AiService.Services
             }
             ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
             Activity.Current?.AddEvent(e);
+        }
+
+        private sealed class ChatSessionState
+        {
+            public ChatHistory History { get; } = new();
+            public DateTime LastActivityUtc { get; set; } = DateTime.UtcNow;
+            public int MessageCount { get; set; }
+            public SemaphoreSlim Lock { get; } = new(1, 1);
         }
     }
 }
