@@ -26,24 +26,40 @@ namespace ChatBro.AiService.Services
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
             };
 
-            var history = new ChatHistory();
+            // For Phase 1 use a single mock user id. Later this will be replaced with real per-channel/user keys.
+            const string sessionKey = "mock-user-id";
 
-
-            history.AddUserMessage(message);
-
-            logger.LogInformation("Sending chat request");
-            var result = await _chatCompletion.GetChatMessageContentAsync(history, promptExecutionSettings, kernel);
-            logger.LogInformation("Received chat response: {Metadata}", result.Metadata);
-            AddChangeResponseReceivedEvent(result);
-
-            var responseItem = result.Items.OfType<TextContent>().Single();
-            var responseText = responseItem.Text!;
-            if (string.IsNullOrWhiteSpace(responseText))
+            var state = await GetOrCreateSessionAsync(sessionKey);
+            await state.Lock.WaitAsync();
+            try
             {
-                throw new InvalidOperationException("No text response from the model!");
-            }
+                // Append the incoming user message to the session history
+                state.History.AddUserMessage(message);
 
-            return responseText;
+                logger.LogInformation("Sending chat request for session {SessionKey}", sessionKey);
+                var result = await _chatCompletion.GetChatMessageContentAsync(state.History, promptExecutionSettings, kernel);
+                logger.LogInformation("Received chat response for session {SessionKey}: {Metadata}", sessionKey, result.Metadata);
+                AddChangeResponseReceivedEvent(result);
+
+                var responseItem = result.Items.OfType<TextContent>().Single();
+                var responseText = responseItem.Text!;
+                if (string.IsNullOrWhiteSpace(responseText))
+                {
+                    throw new InvalidOperationException("No text response from the model!");
+                }
+
+                // Append assistant response to the session history
+                state.History.AddAssistantMessage(responseText);
+
+                // Update metadata
+                state.LastActivityUtc = DateTime.UtcNow;
+
+                return responseText;
+            }
+            finally
+            {
+                state.Lock.Release();
+            }
         }
 
         private async Task<ChatSessionState> GetOrCreateSessionAsync(string key)
