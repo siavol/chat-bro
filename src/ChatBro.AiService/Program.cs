@@ -6,7 +6,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+builder.Services.AddOptions<ChatHistoryOptions>()
+    .BindConfiguration("Chat:History")
+    .ValidateDataAnnotations();
+
 builder.Services
+    .AddMemoryCache()
     .AddScoped<ChatService>()
     .AddScoped<IContextProvider, ContextProvider>()
     .AddControllers();

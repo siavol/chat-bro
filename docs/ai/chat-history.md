@@ -22,7 +22,7 @@
 
 1. **[DONE] Create project scaffolding**
    - Add `docs/ai/chat-history.md` (this plan) for reference.
-2. **Add configuration defaults**
+2. **[DONE] Add configuration defaults**
    - Extend `appsettings.json` with `Chat:History` section (sliding TTL, absolute TTL, message/token limits).
    - Bind to a new `ChatHistoryOptions` class and register with options pattern.
 3. **Introduce history cache service**
