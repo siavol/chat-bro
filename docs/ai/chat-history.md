@@ -34,7 +34,7 @@
    - Append assistant response to history; update metadata (last activity, message count).
    - Apply trimming rules if limits exceeded (drop oldest user+assistant pairs until within bounds).
    - Release lock and return the response.
-5. **Testing & validation**
+5. **[DONE] Testing & validation**
    - Add unit tests for session creation/trimming using the hardcoded key.
    - Manual test via API (e.g., curl/Postman) sending sequential requests with implicit `mock-user-id`; confirm second response references previous message.
    - Document limitations (single conversation only) in README or issue tracker.

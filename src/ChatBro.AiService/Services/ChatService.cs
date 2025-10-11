@@ -27,7 +27,8 @@ namespace ChatBro.AiService.Services
             };
 
             // For Phase 1 use a single mock user id. Later this will be replaced with real per-channel/user keys.
-            const string sessionKey = "mock-user-id";
+            const string sessionId = "mock-user-id";
+            var sessionKey = new CacheKey(sessionId);
 
             var state = await GetOrCreateSessionAsync(sessionKey);
             await state.Lock.WaitAsync();
@@ -62,7 +63,7 @@ namespace ChatBro.AiService.Services
             }
         }
 
-        private async Task<ChatSessionState> GetOrCreateSessionAsync(string key)
+        private async Task<ChatSessionState> GetOrCreateSessionAsync(CacheKey key)
         {
             // Build cache entry options from settings
             var entryOptions = new MemoryCacheEntryOptions
@@ -71,6 +72,7 @@ namespace ChatBro.AiService.Services
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(_historyOptions.AbsoluteExpirationHours)
             };
 
+            // Use the record instance itself as the cache key; this avoids accidental collisions with other services
             var state = await cache.GetOrCreateAsync(key, async cacheEntry =>
             {
                 cacheEntry.SetOptions(entryOptions);
@@ -103,6 +105,8 @@ namespace ChatBro.AiService.Services
             ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
             Activity.Current?.AddEvent(e);
         }
+
+        private sealed record CacheKey(string SessionId);
 
         private sealed class ChatSessionState
         {
