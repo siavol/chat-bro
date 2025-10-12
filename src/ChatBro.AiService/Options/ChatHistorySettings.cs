@@ -1,6 +1,6 @@
-namespace ChatBro.AiService.DependencyInjection;
+namespace ChatBro.AiService.Options;
 
-public class ChatHistoryOptions
+public class ChatHistorySettings
 {
     /// Sliding expiration in minutes for per-user chat session entries
     public int SlidingExpirationMinutes { get; init; } = 30;

@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using ChatBro.AiService.DependencyInjection;
+using ChatBro.AiService.Options;
 
 namespace ChatBro.AiService.Services;
 

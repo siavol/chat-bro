@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ChatBro.AiService.Options;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -9,7 +10,7 @@ using TextContent = Microsoft.SemanticKernel.TextContent;
 namespace ChatBro.AiService.Services
 {
     public class ChatService(
-        IOptions<DependencyInjection.ChatHistoryOptions> historyOptions,
+        IOptions<ChatHistorySettings> historyOptions,
         Kernel kernel,
         IContextProvider contextProvider,
         IMemoryCache cache,
@@ -17,7 +18,7 @@ namespace ChatBro.AiService.Services
     )
     {
         private readonly IChatCompletionService _chatCompletion = kernel.GetRequiredService<IChatCompletionService>();
-        private readonly DependencyInjection.ChatHistoryOptions _historyOptions = historyOptions.Value;
+        private readonly ChatHistorySettings _historyOptions = historyOptions.Value;
 
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
