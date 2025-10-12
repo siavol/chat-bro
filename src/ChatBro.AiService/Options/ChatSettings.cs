@@ -11,5 +11,3 @@ public class ChatSettings
         public string Shared { get; init; } = "contexts/shared.md";
     }
 }
-
-#pragma warning restore SKEXP0070
