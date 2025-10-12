@@ -16,10 +16,6 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
 
         var date = DateOnly.FromDateTime(dateTime);
         var restaurants = await client.GetRestaurantsAsync(date);
-        return restaurants
-            .Where(RestaurantsHasMenuItems)
-            .ToArray();
+        return [.. restaurants];
     }
-
-    private static bool RestaurantsHasMenuItems(Restaurant r) => r.MenuItems.Count > 0;
 }
