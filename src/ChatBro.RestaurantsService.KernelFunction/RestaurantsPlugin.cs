@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 using ChatBro.RestaurantsService.Model;
 using Microsoft.SemanticKernel;
 
@@ -31,7 +32,7 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
 
     private static string SerializeCsv(IReadOnlyList<Restaurant> restaurants)
     {
-        var sb = new System.Text.StringBuilder();
+        var sb = new StringBuilder();
 
         // Header (optional - the model can be instructed whether header exists). We'll omit header to save tokens.
         foreach (var r in restaurants)
