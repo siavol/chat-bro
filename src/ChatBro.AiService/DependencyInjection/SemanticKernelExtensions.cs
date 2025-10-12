@@ -1,4 +1,5 @@
-﻿using ChatBro.AiService.Plugins;
+﻿using ChatBro.AiService.Options;
+using ChatBro.AiService.Plugins;
 using ChatBro.RestaurantsService.KernelFunction;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
@@ -52,18 +53,6 @@ public static class SemanticKernelExtensions
     {
         services.AddScoped(_ => appServices.GetRequiredService<RestaurantsServiceClient>());
         return services;
-    }
-}
-
-public class ChatSettings
-{
-    public required string AiModel { get; init; }
-
-    public ChatContextSettings Context { get; init; } = new ChatContextSettings();
-
-    public class ChatContextSettings
-    {
-        public string Shared { get; init; } = "contexts/shared.md";
     }
 }
 

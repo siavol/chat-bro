@@ -2,9 +2,9 @@
 
 public class AiServiceClient(HttpClient http)
 {
-    public async Task<string> ChatAsync(string message, CancellationToken cancellationToken = default)
+    public async Task<string> ChatAsync(string message, string userId, CancellationToken cancellationToken = default)
     {
-        var request = new ChatRequest(message);
+        var request = new ChatRequest(userId, message);
 
         using var response = await http.PostAsync("/chat", JsonContent.Create(request), cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -18,6 +18,6 @@ public class AiServiceClient(HttpClient http)
         return body.TextContent;
     }
 
-    private record ChatRequest(string Message);
+    private record ChatRequest(string UserId, string Message);
     private record ChatResponse(string TextContent);
 }

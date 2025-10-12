@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using ChatBro.AiService.Options;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using TextContent = Microsoft.SemanticKernel.TextContent;
@@ -7,44 +10,83 @@ using TextContent = Microsoft.SemanticKernel.TextContent;
 namespace ChatBro.AiService.Services
 {
     public class ChatService(
+        IOptions<ChatHistorySettings> historyOptions,
         Kernel kernel,
         IContextProvider contextProvider,
+        IMemoryCache cache,
         ILogger<ChatService> logger
     )
     {
         private readonly IChatCompletionService _chatCompletion = kernel.GetRequiredService<IChatCompletionService>();
+        private readonly ChatHistorySettings _historyOptions = historyOptions.Value;
 
-        public async Task<string> GetChatResponseAsync(string message)
+        public async Task<string> GetChatResponseAsync(string message, string userId)
         {
-            PromptExecutionSettings promptExecutionSettings = new()
+            var state = await GetOrCreateSessionAsync(userId);
+            await state.Lock.WaitAsync();
+            try
             {
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                // Append the incoming user message to the session history
+                state.History.AddUserMessage(message);
+
+                logger.LogInformation("Sending chat request for user {UserId}", userId);
+                PromptExecutionSettings promptExecutionSettings = new()
+                {
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                };
+                var result = await _chatCompletion.GetChatMessageContentAsync(state.History, promptExecutionSettings, kernel);
+                logger.LogInformation("Received chat response for user {UserId}: {Metadata}", userId, result.Metadata);
+                AddChangeResponseReceivedEvent(result);
+
+                var responseItem = result.Items.OfType<TextContent>().Single();
+                var responseText = responseItem.Text!;
+                if (string.IsNullOrWhiteSpace(responseText))
+                {
+                    throw new InvalidOperationException("No text response from the model!");
+                }
+
+                // Append assistant response to the session history
+                state.History.AddAssistantMessage(responseText);
+
+                // Update metadata
+                state.LastActivityUtc = DateTime.UtcNow;
+
+                return responseText;
+            }
+            finally
+            {
+                state.Lock.Release();
+            }
+        }
+
+        private async Task<ChatSessionState> GetOrCreateSessionAsync(string userId)
+        {
+            var key = new CacheKey(userId);
+
+            // Build cache entry options from settings
+            var entryOptions = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromMinutes(_historyOptions.SlidingExpirationMinutes),
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(_historyOptions.AbsoluteExpirationHours)
             };
 
-            var history = new ChatHistory();
-
-            var systemContext = await contextProvider.GetSystemContextAsync();
-            if (!string.IsNullOrWhiteSpace(systemContext))
+            // Use the record instance itself as the cache key; this avoids accidental collisions with other services
+            var state = await cache.GetOrCreateAsync(key, async cacheEntry =>
             {
-                // Add system context to the chat history so the model receives processing rules and expectations
-                history.AddSystemMessage(systemContext);
-            }
+                cacheEntry.SetOptions(entryOptions);
 
-            history.AddUserMessage(message);
+                var newState = new ChatSessionState();
+                var systemContext = await contextProvider.GetSystemContextAsync();
+                if (!string.IsNullOrWhiteSpace(systemContext))
+                {
+                    // Add system context to the chat history so the model receives processing rules and expectations
+                    newState.History.AddSystemMessage(systemContext);
+                }
 
-            logger.LogInformation("Sending chat request");
-            var result = await _chatCompletion.GetChatMessageContentAsync(history, promptExecutionSettings, kernel);
-            logger.LogInformation("Received chat response: {Metadata}", result.Metadata);
-            AddChangeResponseReceivedEvent(result);
+                return newState;
+            });
 
-            var responseItem = result.Items.OfType<TextContent>().Single();
-            var responseText = responseItem.Text!;
-            if (string.IsNullOrWhiteSpace(responseText))
-            {
-                throw new InvalidOperationException("No text response from the model!");
-            }
-
-            return responseText;
+            return state ?? throw new InvalidOperationException("Failed to create or retrieve chat session state.");
         }
 
         private static void AddChangeResponseReceivedEvent(ChatMessageContent result)
@@ -60,6 +102,15 @@ namespace ChatBro.AiService.Services
             }
             ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
             Activity.Current?.AddEvent(e);
+        }
+
+        private sealed record CacheKey(string SessionId);
+
+        private sealed class ChatSessionState
+        {
+            public ChatHistory History { get; } = new();
+            public DateTime LastActivityUtc { get; set; } = DateTime.UtcNow;
+            public SemaphoreSlim Lock { get; } = new(1, 1);
         }
     }
 }
