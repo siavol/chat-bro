@@ -21,11 +21,6 @@ namespace ChatBro.AiService.Services
 
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
-            PromptExecutionSettings promptExecutionSettings = new()
-            {
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-            };
-
             var state = await GetOrCreateSessionAsync(userId);
             await state.Lock.WaitAsync();
             try
@@ -34,6 +29,10 @@ namespace ChatBro.AiService.Services
                 state.History.AddUserMessage(message);
 
                 logger.LogInformation("Sending chat request for user {UserId}", userId);
+                PromptExecutionSettings promptExecutionSettings = new()
+                {
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                };
                 var result = await _chatCompletion.GetChatMessageContentAsync(state.History, promptExecutionSettings, kernel);
                 logger.LogInformation("Received chat response for user {UserId}: {Metadata}", userId, result.Metadata);
                 AddChangeResponseReceivedEvent(result);

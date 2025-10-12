@@ -1,4 +1,5 @@
-﻿using ChatBro.AiService.Services;
+﻿using System.Diagnostics;
+using ChatBro.AiService.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatBro.AiService.Controllers;
@@ -19,6 +20,7 @@ public class ChatController(ChatService chatService) : ControllerBase
             return BadRequest("Chat request Message can not be null or empty.");
         }
 
+        Activity.Current?.SetTag("chat.user.id", request.UserId);
         var responseText = await chatService.GetChatResponseAsync(request.Message, request.UserId);
         return Ok(new ChatResponse(responseText));
     }
