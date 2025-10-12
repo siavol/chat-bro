@@ -110,7 +110,6 @@ namespace ChatBro.AiService.Services
         {
             public ChatHistory History { get; } = new();
             public DateTime LastActivityUtc { get; set; } = DateTime.UtcNow;
-            public int MessageCount { get; set; }
             public SemaphoreSlim Lock { get; } = new(1, 1);
         }
     }
