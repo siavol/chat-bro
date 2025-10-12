@@ -34,7 +34,7 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
     {
         var sb = new StringBuilder();
 
-        // Header (optional - the model can be instructed whether header exists). We'll omit header to save tokens.
+        // No header row is included in the CSV output (intentionally omitted to save tokens).
         foreach (var r in restaurants)
         {
             var menuSummary = r.MenuItems is null || r.MenuItems.Count == 0
