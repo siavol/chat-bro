@@ -41,6 +41,10 @@ app.MapControllers();
 app.Services.UseScheduler(scheduler =>
 {
     var schedulerSettings = app.Services.GetRequiredService<IOptions<SchedulerSettings>>().Value;
+    var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("SchedulerRegistration");
+
+    logger.LogInformation("Registering scheduled job {Job} with cron expression '{Cron}'",
+        nameof(WarmupLounaatCacheJob), schedulerSettings.WarmupJobCron);
     scheduler
         .Schedule<WarmupLounaatCacheJob>()
         .Cron(schedulerSettings.WarmupJobCron);
