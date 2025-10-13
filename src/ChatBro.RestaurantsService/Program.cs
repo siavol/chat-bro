@@ -47,7 +47,8 @@ app.Services.UseScheduler(scheduler =>
         nameof(WarmupLounaatCacheJob), schedulerSettings.WarmupJobCron);
     scheduler
         .Schedule<WarmupLounaatCacheJob>()
-        .Cron(schedulerSettings.WarmupJobCron);
+        .Cron(schedulerSettings.WarmupJobCron)
+        .Zoned(TimeZoneInfo.Local);
 });
 
 app.Run();
