@@ -18,7 +18,7 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
                                 Gluten-free items with [G].
                  - Messages: pipe-separated messages
                  
-                 Notes: No header row is included. Fields containing commas, quotes, or newlines are double-quoted.
+                 Notes: No header row is included. Fields containing commas, quotes, or newlines are double-quoted
                  and inner quotes are escaped by doubling them. Use this CSV as structured input for further prompt processing.
                  """)]
     public async Task<string> GetRestaurants(
