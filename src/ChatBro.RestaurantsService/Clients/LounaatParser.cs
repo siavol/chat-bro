@@ -31,10 +31,12 @@ public class LounaatParser(ILogger<LounaatParser> logger)
 
                 // Checking dietary labels
                 bool lakto = dishNode.SelectSingleNode(".//a[contains(@class,'diet-l')]") != null;
-                bool maito = dishNode.SelectSingleNode(".//a[contains(@class,'diet-m')]") != null;
+                // bool maito = dishNode.SelectSingleNode(".//a[contains(@class,'diet-m')]") != null;
                 bool glute = dishNode.SelectSingleNode(".//a[contains(@class,'diet-g')]") != null;
 
-                menuItems.Add(new RestaurantMenuItem(dishName, lakto, maito, glute));
+                menuItems.Add(new RestaurantMenuItem(dishName,
+                    LactoseFree: lakto,
+                    GlutenFree: glute));
             }
 
             // Additional messages (e.g., links or text without diet labels)

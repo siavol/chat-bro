@@ -12,11 +12,13 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
     [Description("""
                  Retrieves nearby restaurants for the specified date and returns a CSV string (one restaurant per line).
                  Columns (in order):
-                 - Name: restaurant name
-                 - MenuSummary: semicolon-separated menu item names
+                 - Name: restaurant name.
+                 - MenuSummary: semicolon-separated menu item names. Each menu item may have diet flags in the end.
+                                Lactose-free items are marked with [L],
+                                Gluten-free items with [G].
                  - Messages: pipe-separated messages
                  
-                 Notes: No header row is included. Fields containing commas, quotes, or newlines are double-quoted 
+                 Notes: No header row is included. Fields containing commas, quotes, or newlines are double-quoted
                  and inner quotes are escaped by doubling them. Use this CSV as structured input for further prompt processing.
                  """)]
     public async Task<string> GetRestaurants(
@@ -39,7 +41,7 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
         {
             var menuSummary = r.MenuItems is null || r.MenuItems.Count == 0
                 ? string.Empty
-                : string.Join(';', r.MenuItems.Select(mi => mi.Name));
+                : string.Join(';', r.MenuItems.Select(MenuItemToCsv));
 
             var messages = r.Messages is null || r.Messages.Count == 0
                 ? string.Empty
@@ -54,6 +56,13 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
         }
 
         return sb.ToString();
+    }
+
+    private static string MenuItemToCsv(RestaurantMenuItem item)
+    {
+        var lactoFree = item.LactoseFree ? " [L]" : string.Empty;
+        var glutenFree = item.GlutenFree ? " [G]" : string.Empty;
+        return item.Name + lactoFree + glutenFree;
     }
 
     private static string EscapeCsv(string? value)
