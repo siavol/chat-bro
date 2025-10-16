@@ -62,7 +62,7 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
     {
         var lactoFree = item.LactoseFree ? " [L]" : string.Empty;
         var glutenFree = item.GlutenFree ? " [G]" : string.Empty;
-        return EscapeCsv(item.Name) + lactoFree + glutenFree;
+        return item.Name + lactoFree + glutenFree;
     }
 
     private static string EscapeCsv(string? value)
