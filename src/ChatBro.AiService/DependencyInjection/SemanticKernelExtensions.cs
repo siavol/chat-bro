@@ -4,6 +4,7 @@ using ChatBro.RestaurantsService.KernelFunction;
 using Microsoft.Extensions.Options;
 using OpenAI;
 using Microsoft.Extensions.AI;
+using Microsoft.Agents.AI;
 
 namespace ChatBro.AiService.DependencyInjection;
 
@@ -38,25 +39,14 @@ public static class SemanticKernelExtensions
                         AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
                     ],
                     services: appServices
-                );
+                )
+                .AsBuilder()
+                .UseOpenTelemetry(
+                    sourceName: "ChatBro.AiService.Agent",
+                    configure: cfg => cfg.EnableSensitiveData = true)
+                .Build();
             return aiAgent;
 
-            // kernelBuilder.AddOpenAIChatClient(chatSettings.Value.AiModel, openAiClient);
-            // kernelBuilder.AddOpenAIChatCompletion(chatSettings.Value.AiModel, openAiClient);
-
-            // kernelBuilder.Services.ProxyScoped<RestaurantsServiceClient>(appServices);
-            // kernelBuilder.Plugins
-            //     .AddFromType<RestaurantsPlugin>("Restaurants")
-            //     .AddFromType<DateTimePlugin>();
-
-            // var loggingFilter = new LoggingFilter(appServices.GetRequiredService<ILogger<LoggingFilter>>());
-            // kernelBuilder.Services
-            //     .AddSingleton<IFunctionInvocationFilter>(loggingFilter);
-
-            // var kernel = kernelBuilder.Build();
-            // kernel.FunctionInvocationFilters.Add(loggingFilter);
-
-            // return kernel;
         });
 
         return appBuilder;

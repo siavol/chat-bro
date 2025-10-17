@@ -4,15 +4,12 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using TextContent = Microsoft.SemanticKernel.TextContent;
 
 namespace ChatBro.AiService.Services
 {
     public class ChatService(
         IOptions<ChatHistorySettings> historyOptions,
-        ChatClientAgent chatAgent,
+        AIAgent chatAgent,
         IContextProvider contextProvider,
         IMemoryCache cache,
         ILogger<ChatService> logger
@@ -43,11 +40,6 @@ namespace ChatBro.AiService.Services
                 chatMessages.Add(new ChatMessage(ChatRole.User, message));
 
                 logger.LogInformation("Sending chat request for user {UserId}", userId);
-                // PromptExecutionSettings promptExecutionSettings = new()
-                // {
-                //     FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-                // };
-                // var result = await _chatCompletion.GetChatMessageContentAsync(state.History, promptExecutionSettings, kernel);
                 
                 var response = await chatAgent.RunAsync(chatMessages, state.Thread);
 
@@ -61,12 +53,6 @@ namespace ChatBro.AiService.Services
                 {
                     throw new InvalidOperationException("No text response from the model!");
                 }
-
-                // Append assistant response to the session history
-                // state.History.AddAssistantMessage(responseText);
-
-                // Update metadata
-                // state.LastActivityUtc = DateTime.UtcNow;
 
                 return responseText;
             }

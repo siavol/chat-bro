@@ -3,13 +3,11 @@ using System.Diagnostics;
 using System.Text;
 using ChatBro.RestaurantsService.Model;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
 
 namespace ChatBro.RestaurantsService.KernelFunction;
 
 public class RestaurantsPlugin
 {
-    // [KernelFunction("get_restaurants")]
     [Description("""
                  Retrieves nearby restaurants for the specified date and returns a CSV string (one restaurant per line).
                  Columns (in order):
