@@ -2,8 +2,8 @@
 using ChatBro.AiService.Plugins;
 using ChatBro.RestaurantsService.KernelFunction;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel;
 using OpenAI;
+using Microsoft.Extensions.AI;
 
 namespace ChatBro.AiService.DependencyInjection;
 
@@ -14,7 +14,7 @@ public static class SemanticKernelExtensions
     {
         AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
         AppContext.SetSwitch("OpenAI.Experimental.EnableOpenTelemetry", true);
-        
+
         appBuilder.AddOpenAIClient("openai");
         
         appBuilder.Services.AddOptions<ChatSettings>()
@@ -23,27 +23,40 @@ public static class SemanticKernelExtensions
             .ValidateOnStart();
         appBuilder.Services.AddSingleton(appServices =>
         {
-            var kernelBuilder = Kernel.CreateBuilder();
-            kernelBuilder.Services.AddLogging();
+            // var kernelBuilder = Kernel.CreateBuilder();
+            // kernelBuilder.Services.AddLogging();
 
             var chatSettings = appServices.GetRequiredService<IOptions<ChatSettings>>();
             var openAiClient = appServices.GetRequiredService<OpenAIClient>();
-            kernelBuilder.AddOpenAIChatClient(chatSettings.Value.AiModel, openAiClient);
-            kernelBuilder.AddOpenAIChatCompletion(chatSettings.Value.AiModel, openAiClient);
+            var aiAgent = openAiClient
+                .GetChatClient(chatSettings.Value.AiModel)
+                .CreateAIAgent(
+                    name: "RestaurantsAgent",
+                    description: "An AI agent specialized in restaurant-related queries.",
+                    tools: [
+                        AIFunctionFactory.Create(RestaurantsPlugin.GetRestaurants, name: "get_restaurants"),
+                        AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
+                    ],
+                    services: appServices
+                );
+            return aiAgent;
 
-            kernelBuilder.Services.ProxyScoped<RestaurantsServiceClient>(appServices);
-            kernelBuilder.Plugins
-                .AddFromType<RestaurantsPlugin>("Restaurants")
-                .AddFromType<DateTimePlugin>();
+            // kernelBuilder.AddOpenAIChatClient(chatSettings.Value.AiModel, openAiClient);
+            // kernelBuilder.AddOpenAIChatCompletion(chatSettings.Value.AiModel, openAiClient);
 
-            var loggingFilter = new LoggingFilter(appServices.GetRequiredService<ILogger<LoggingFilter>>());
-            kernelBuilder.Services
-                .AddSingleton<IFunctionInvocationFilter>(loggingFilter);
+            // kernelBuilder.Services.ProxyScoped<RestaurantsServiceClient>(appServices);
+            // kernelBuilder.Plugins
+            //     .AddFromType<RestaurantsPlugin>("Restaurants")
+            //     .AddFromType<DateTimePlugin>();
 
-            var kernel = kernelBuilder.Build();
-            kernel.FunctionInvocationFilters.Add(loggingFilter);
+            // var loggingFilter = new LoggingFilter(appServices.GetRequiredService<ILogger<LoggingFilter>>());
+            // kernelBuilder.Services
+            //     .AddSingleton<IFunctionInvocationFilter>(loggingFilter);
 
-            return kernel;
+            // var kernel = kernelBuilder.Build();
+            // kernel.FunctionInvocationFilters.Add(loggingFilter);
+
+            // return kernel;
         });
 
         return appBuilder;

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ChatBro.AiService.Options;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -11,34 +12,50 @@ namespace ChatBro.AiService.Services
 {
     public class ChatService(
         IOptions<ChatHistorySettings> historyOptions,
-        Kernel kernel,
+        ChatClientAgent chatAgent,
         IContextProvider contextProvider,
         IMemoryCache cache,
         ILogger<ChatService> logger
     )
     {
-        private readonly IChatCompletionService _chatCompletion = kernel.GetRequiredService<IChatCompletionService>();
+        // private readonly IChatCompletionService _chatCompletion = kernel.GetRequiredService<IChatCompletionService>();
         private readonly ChatHistorySettings _historyOptions = historyOptions.Value;
 
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
             var state = await GetOrCreateSessionAsync(userId);
-            await state.Lock.WaitAsync();
+
+            var chatMessages = new List<ChatMessage>(2);
+            if (state.IsContextSet == false)
+            {
+                var systemContext = await contextProvider.GetSystemContextAsync();
+                if (!string.IsNullOrWhiteSpace(systemContext))
+                {
+                    // Add system context to the chat history so the model receives processing rules and expectations
+                    chatMessages.Add(new ChatMessage(ChatRole.System, systemContext));
+                }
+            }
+
+            // await state.Lock.WaitAsync();
             try
             {
                 // Append the incoming user message to the session history
-                state.History.AddUserMessage(message);
+                chatMessages.Add(new ChatMessage(ChatRole.User, message));
 
                 logger.LogInformation("Sending chat request for user {UserId}", userId);
-                PromptExecutionSettings promptExecutionSettings = new()
-                {
-                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-                };
-                var result = await _chatCompletion.GetChatMessageContentAsync(state.History, promptExecutionSettings, kernel);
-                logger.LogInformation("Received chat response for user {UserId}: {Metadata}", userId, result.Metadata);
-                AddChangeResponseReceivedEvent(result);
+                // PromptExecutionSettings promptExecutionSettings = new()
+                // {
+                //     FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                // };
+                // var result = await _chatCompletion.GetChatMessageContentAsync(state.History, promptExecutionSettings, kernel);
+                
+                var response = await chatAgent.RunAsync(chatMessages, state.Thread);
 
-                var responseItem = result.Items.OfType<TextContent>().Single();
+                logger.LogInformation("Received chat response for user {UserId}: {Metadata}", userId, response.AdditionalProperties);
+                AddChangeResponseReceivedEvent(response);
+
+                var responseItem = response;
+                // var responseItem = result.Items.OfType<TextContent>().Single();
                 var responseText = responseItem.Text!;
                 if (string.IsNullOrWhiteSpace(responseText))
                 {
@@ -46,16 +63,16 @@ namespace ChatBro.AiService.Services
                 }
 
                 // Append assistant response to the session history
-                state.History.AddAssistantMessage(responseText);
+                // state.History.AddAssistantMessage(responseText);
 
                 // Update metadata
-                state.LastActivityUtc = DateTime.UtcNow;
+                // state.LastActivityUtc = DateTime.UtcNow;
 
                 return responseText;
             }
             finally
             {
-                state.Lock.Release();
+                // state.Lock.Release();
             }
         }
 
@@ -75,42 +92,38 @@ namespace ChatBro.AiService.Services
             {
                 cacheEntry.SetOptions(entryOptions);
 
-                var newState = new ChatSessionState();
-                var systemContext = await contextProvider.GetSystemContextAsync();
-                if (!string.IsNullOrWhiteSpace(systemContext))
-                {
-                    // Add system context to the chat history so the model receives processing rules and expectations
-                    newState.History.AddSystemMessage(systemContext);
-                }
-
+                var thread = chatAgent.GetNewThread();
+                var newState = new ChatSessionState(thread);
                 return newState;
             });
 
             return state ?? throw new InvalidOperationException("Failed to create or retrieve chat session state.");
         }
 
-        private static void AddChangeResponseReceivedEvent(ChatMessageContent result)
+        private static void AddChangeResponseReceivedEvent(AgentRunResponse response)
         {
-            var eventTags = new ActivityTagsCollection();
-            if (result.Metadata != null &&
-                result.Metadata.TryGetValue("Usage", out var usage) &&
-                usage is UsageDetails usageDetails)
-            {
-                eventTags.Add("Usage.InputTokenCount", usageDetails.InputTokenCount);
-                eventTags.Add("Usage.OutputTokenCount", usageDetails.OutputTokenCount);
-                eventTags.Add("Usage.TotalTokenCount", usageDetails.TotalTokenCount);
-            }
-            ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
-            Activity.Current?.AddEvent(e);
+            // var eventTags = new ActivityTagsCollection();
+            // if (result.Metadata != null &&
+            //     result.Metadata.TryGetValue("Usage", out var usage) &&
+            //     usage is UsageDetails usageDetails)
+            // {
+            //     eventTags.Add("Usage.InputTokenCount", usageDetails.InputTokenCount);
+            //     eventTags.Add("Usage.OutputTokenCount", usageDetails.OutputTokenCount);
+            //     eventTags.Add("Usage.TotalTokenCount", usageDetails.TotalTokenCount);
+            // }
+            // ActivityEvent e = new("ChatResponseReceived", tags: eventTags);
+            // Activity.Current?.AddEvent(e);
         }
 
         private sealed record CacheKey(string SessionId);
 
-        private sealed class ChatSessionState
+        private sealed record ChatSessionState(AgentThread Thread)
         {
-            public ChatHistory History { get; } = new();
-            public DateTime LastActivityUtc { get; set; } = DateTime.UtcNow;
-            public SemaphoreSlim Lock { get; } = new(1, 1);
+            public bool IsContextSet { get; set; } = false;
+
+            // public ChatHistory History { get; } = new();
+            // public DateTime LastActivityUtc { get; set; } = DateTime.UtcNow;
+            // public SemaphoreSlim Lock { get; } = new(1, 1);
         }
     }
 }

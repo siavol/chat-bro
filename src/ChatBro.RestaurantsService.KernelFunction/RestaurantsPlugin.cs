@@ -2,13 +2,14 @@
 using System.Diagnostics;
 using System.Text;
 using ChatBro.RestaurantsService.Model;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 
 namespace ChatBro.RestaurantsService.KernelFunction;
 
-public class RestaurantsPlugin(RestaurantsServiceClient client)
+public class RestaurantsPlugin
 {
-    [KernelFunction("get_restaurants")]
+    // [KernelFunction("get_restaurants")]
     [Description("""
                  Retrieves nearby restaurants for the specified date and returns a CSV string (one restaurant per line).
                  Columns (in order):
@@ -21,9 +22,11 @@ public class RestaurantsPlugin(RestaurantsServiceClient client)
                  Notes: No header row is included. Fields containing commas, quotes, or newlines are double-quoted
                  and inner quotes are escaped by doubling them. Use this CSV as structured input for further prompt processing.
                  """)]
-    public async Task<string> GetRestaurants(
-        [Description("The day on which to find information.")] DateTime dateTime)
+    public static async Task<string> GetRestaurants(
+        [Description("The day on which to find information.")] DateTime dateTime,
+        IServiceProvider serviceProvider)
     {
+        var client = serviceProvider.GetRequiredService<RestaurantsServiceClient>();
         using var span = Activity.Current?.Source.StartActivity();
 
         var date = DateOnly.FromDateTime(dateTime);
