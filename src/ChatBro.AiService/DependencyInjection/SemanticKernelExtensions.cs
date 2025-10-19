@@ -12,7 +12,7 @@ namespace ChatBro.AiService.DependencyInjection;
 
 public static class SemanticKernelExtensions
 {
-    public static IHostApplicationBuilder AddSemanticKernel(this IHostApplicationBuilder appBuilder)
+    public static IHostApplicationBuilder AddAgents(this IHostApplicationBuilder appBuilder)
     {
         AppContext.SetSwitch("OpenAI.Experimental.EnableOpenTelemetry", true);
 
@@ -22,10 +22,14 @@ public static class SemanticKernelExtensions
             .BindConfiguration("Chat")
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        appBuilder.Services.AddSingleton<FunctionMiddleware>();
+
         appBuilder.Services.AddSingleton(appServices =>
         {
             var chatSettings = appServices.GetRequiredService<IOptions<ChatSettings>>();
             var openAiClient = appServices.GetRequiredService<OpenAIClient>();
+            var functionMiddleware = appServices.GetRequiredService<FunctionMiddleware>();
+
             var aiAgent = openAiClient
                 .GetChatClient(chatSettings.Value.AiModel)
                 .CreateAIAgent(new ChatClientAgentOptions()
@@ -50,6 +54,7 @@ public static class SemanticKernelExtensions
                     services: appServices
                 )
                 .AsBuilder()
+                .Use(functionMiddleware.CustomFunctionCallingMiddleware)
                 .UseOpenTelemetry(
                     sourceName: "ChatBro.AiService.Agent",
                     configure: cfg => cfg.EnableSensitiveData = true)

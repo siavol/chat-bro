@@ -19,7 +19,7 @@ builder.Services
 builder.Services.AddHttpClient<RestaurantsServiceClient>(
     static client => client.BaseAddress = new Uri("https+http://chatbro-restaurants"));
 
-builder.AddSemanticKernel();
+builder.AddAgents();
 
 var app = builder.Build();
 
