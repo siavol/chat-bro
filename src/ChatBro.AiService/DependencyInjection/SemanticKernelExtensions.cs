@@ -8,6 +8,8 @@ using Microsoft.Agents.AI;
 
 namespace ChatBro.AiService.DependencyInjection;
 
+#pragma warning disable MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
 public static class SemanticKernelExtensions
 {
     public static IHostApplicationBuilder AddSemanticKernel(this IHostApplicationBuilder appBuilder)
@@ -15,7 +17,7 @@ public static class SemanticKernelExtensions
         AppContext.SetSwitch("OpenAI.Experimental.EnableOpenTelemetry", true);
 
         appBuilder.AddOpenAIClient("openai");
-        
+
         appBuilder.Services.AddOptions<ChatSettings>()
             .BindConfiguration("Chat")
             .ValidateDataAnnotations()
@@ -26,13 +28,25 @@ public static class SemanticKernelExtensions
             var openAiClient = appServices.GetRequiredService<OpenAIClient>();
             var aiAgent = openAiClient
                 .GetChatClient(chatSettings.Value.AiModel)
-                .CreateAIAgent(
-                    name: "RestaurantsAgent",
-                    description: "An AI agent specialized in restaurant-related queries.",
-                    tools: [
-                        AIFunctionFactory.Create(RestaurantsPlugin.GetRestaurants, name: "get_restaurants"),
-                        AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
-                    ],
+                .CreateAIAgent(new ChatClientAgentOptions()
+                    {
+                        Name = "RestaurantsAgent",
+                        Description = "An AI agent specialized in restaurant-related queries.",
+                        // Instructions = null,
+                        ChatOptions = new ChatOptions()
+                        {
+                            Tools = [
+                                    AIFunctionFactory.Create(RestaurantsPlugin.GetRestaurants, name: "get_restaurants"),
+                                    AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
+                                ]
+                        },
+                        ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
+                            new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessaageCount),
+                            ctx.SerializedState,
+                            ctx.JsonSerializerOptions,
+                            InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
+                        ),
+                    },
                     services: appServices
                 )
                 .AsBuilder()
@@ -46,3 +60,5 @@ public static class SemanticKernelExtensions
         return appBuilder;
     }
 }
+
+#pragma warning restore MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

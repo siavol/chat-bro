@@ -7,14 +7,14 @@ using Microsoft.Extensions.Options;
 namespace ChatBro.AiService.Services
 {
     public class ChatService(
-        IOptions<ChatHistorySettings> historyOptions,
+        // IOptions<ChatHistorySettings> historyOptions,
         AIAgent chatAgent,
         IContextProvider contextProvider,
         IMemoryCache cache,
         ILogger<ChatService> logger
     )
     {
-        private readonly ChatHistorySettings _historyOptions = historyOptions.Value;
+        // private readonly ChatHistorySettings _historyOptions = historyOptions.Value;
 
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
@@ -48,19 +48,8 @@ namespace ChatBro.AiService.Services
         private async Task<ChatSessionState> GetOrCreateSessionAsync(string userId)
         {
             var key = new CacheKey(userId);
-
-            // Build cache entry options from settings
-            var entryOptions = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(_historyOptions.SlidingExpirationMinutes),
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(_historyOptions.AbsoluteExpirationHours)
-            };
-
-            // Use the record instance itself as the cache key; this avoids accidental collisions with other services
             var state = await cache.GetOrCreateAsync(key, async cacheEntry =>
             {
-                cacheEntry.SetOptions(entryOptions);
-
                 var thread = chatAgent.GetNewThread();
                 var newState = new ChatSessionState(thread);
                 return newState;
