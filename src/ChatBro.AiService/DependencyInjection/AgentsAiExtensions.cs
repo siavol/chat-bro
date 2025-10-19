@@ -1,16 +1,16 @@
 ﻿using ChatBro.AiService.Options;
 using ChatBro.AiService.Plugins;
 using ChatBro.RestaurantsService.KernelFunction;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using OpenAI;
-using Microsoft.Extensions.AI;
-using Microsoft.Agents.AI;
 
 namespace ChatBro.AiService.DependencyInjection;
 
 #pragma warning disable MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-public static class SemanticKernelExtensions
+public static class AgentsAiExtensions
 {
     public static IHostApplicationBuilder AddAgents(this IHostApplicationBuilder appBuilder)
     {
