@@ -49,7 +49,7 @@ public static class AgentsAiExtensions
                                 ]
                         },
                         ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
-                            new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessaageCount),
+                            new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
                             ctx.SerializedState,
                             ctx.JsonSerializerOptions,
                             InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
