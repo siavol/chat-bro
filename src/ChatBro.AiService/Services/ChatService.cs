@@ -12,7 +12,7 @@ namespace ChatBro.AiService.Services
     {
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
-            var state = await GetOrCreateSessionAsync(userId);
+            var state = GetOrCreateSessionAsync(userId);
 
             var chatMessages = new ChatMessage[]
             {
@@ -30,10 +30,10 @@ namespace ChatBro.AiService.Services
             return response.Text;
         }
 
-        private async Task<ChatSessionState> GetOrCreateSessionAsync(string userId)
+        private ChatSessionState GetOrCreateSessionAsync(string userId)
         {
             var key = new CacheKey(userId);
-            var state = await cache.GetOrCreateAsync(key, async cacheEntry =>
+            var state = cache.GetOrCreate(key, cacheEntry =>
             {
                 var thread = chatAgent.GetNewThread();
                 var newState = new ChatSessionState(thread);
