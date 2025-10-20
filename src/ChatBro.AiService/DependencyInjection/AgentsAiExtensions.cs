@@ -1,5 +1,6 @@
 ﻿using ChatBro.AiService.Options;
 using ChatBro.AiService.Plugins;
+using ChatBro.AiService.Services;
 using ChatBro.RestaurantsService.KernelFunction;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -23,6 +24,9 @@ public static class AgentsAiExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
         appBuilder.Services.AddSingleton<FunctionMiddleware>();
+        appBuilder.Services
+            .AddTransient<IContextProvider, ContextProvider>()
+            .AddTransient<Providers.InstructionsAIContextProvider>();
 
         appBuilder.Services.AddSingleton(appServices =>
         {
@@ -36,7 +40,7 @@ public static class AgentsAiExtensions
                     {
                         Name = "RestaurantsAgent",
                         Description = "An AI agent specialized in restaurant-related queries.",
-                        // Instructions = null,
+                        AIContextProviderFactory = ctx => appServices.GetRequiredService<Providers.InstructionsAIContextProvider>(),
                         ChatOptions = new ChatOptions()
                         {
                             Tools = [
