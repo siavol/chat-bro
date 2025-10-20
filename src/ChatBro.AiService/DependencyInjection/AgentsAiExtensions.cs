@@ -26,7 +26,7 @@ public static class AgentsAiExtensions
         appBuilder.Services.AddSingleton<FunctionMiddleware>();
         appBuilder.Services
             .AddTransient<IContextProvider, ContextProvider>()
-            .AddTransient<Providers.InstructionsAIContextProvider>();
+            .AddTransient<InstructionsAIContextProvider>();
 
         appBuilder.Services.AddSingleton(appServices =>
         {
@@ -40,7 +40,7 @@ public static class AgentsAiExtensions
                     {
                         Name = "RestaurantsAgent",
                         Description = "An AI agent specialized in restaurant-related queries.",
-                        AIContextProviderFactory = ctx => appServices.GetRequiredService<Providers.InstructionsAIContextProvider>(),
+                        AIContextProviderFactory = ctx => appServices.GetRequiredService<InstructionsAIContextProvider>(),
                         ChatOptions = new ChatOptions()
                         {
                             Tools = [

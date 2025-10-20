@@ -1,7 +1,7 @@
 using ChatBro.AiService.Services;
 using Microsoft.Agents.AI;
 
-namespace ChatBro.AiService.Providers;
+namespace ChatBro.AiService.Plugins;
 
 public class InstructionsAIContextProvider(IContextProvider contextProvider, ILogger<InstructionsAIContextProvider> logger) : AIContextProvider
 {
