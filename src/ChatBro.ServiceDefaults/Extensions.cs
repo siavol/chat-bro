@@ -68,14 +68,17 @@ public static class Extensions
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddMeter(
-                        "Microsoft.SemanticKernel.*",
+                        "ChatBro.*",
+                        "*Microsoft.Agents.AI",
                         "OpenAI.*"
                     );
             })
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddSource("Microsoft.SemanticKernel.*")
+                    .AddSource("ChatBro.*")
+                    .AddSource("*Microsoft.Extensions.AI")
+                    .AddSource("*Microsoft.Extensions.Agents*")
                     .AddSource("OpenAI.*")
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
