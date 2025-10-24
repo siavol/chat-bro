@@ -48,12 +48,16 @@ public static class AgentsAiExtensions
                                     AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
                                 ]
                         },
-                        ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
-                            new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
-                            ctx.SerializedState,
-                            ctx.JsonSerializerOptions,
-                            InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
-                        ),
+                        ChatMessageStoreFactory = ctx =>
+                        {
+                            // return new MyMemoryChatMessageStore(ctx.SerializedState, ctx.JsonSerializerOptions);
+                            return new InMemoryChatMessageStore(
+                                                        new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
+                                                        ctx.SerializedState,
+                                                        ctx.JsonSerializerOptions,
+                                                        InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
+                                                    );
+                        },
                     },
                     services: appServices
                 )
