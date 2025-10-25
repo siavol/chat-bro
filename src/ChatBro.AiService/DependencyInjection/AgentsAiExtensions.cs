@@ -50,7 +50,6 @@ public static class AgentsAiExtensions
                         },
                         ChatMessageStoreFactory = ctx =>
                         {
-                            // return new MyMemoryChatMessageStore(ctx.SerializedState, ctx.JsonSerializerOptions);
                             return new InMemoryChatMessageStore(
                                                         new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
                                                         ctx.SerializedState,

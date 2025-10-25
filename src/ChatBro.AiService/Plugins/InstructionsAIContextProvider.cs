@@ -32,8 +32,9 @@ public class InstructionsAIContextProvider(IContextProvider contextProvider, ILo
 
     public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
     {
+        // Thread serialization throws exception when context serialization is not defined.
         return JsonSerializer.SerializeToElement(new InternalState(), jsonSerializerOptions);
     }
 
-    public record InternalState();
+    internal record InternalState();
 }

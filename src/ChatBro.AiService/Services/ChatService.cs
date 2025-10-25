@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ChatBro.AiService.Services
@@ -14,11 +13,6 @@ namespace ChatBro.AiService.Services
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
             var thread = GetOrCreateThread(userId);
-
-            // var chatMessages = new ChatMessage[]
-            // {
-            //     new(ChatRole.User, message)
-            // };
 
             logger.LogInformation("Sending chat request for user {UserId}", userId);
             var response = await chatAgent.RunAsync(message, thread);
@@ -46,15 +40,6 @@ namespace ChatBro.AiService.Services
             }
 
             return chatAgent.GetNewThread();
-
-            // var state = cache.GetOrCreate(key, cacheEntry =>
-            // {
-            //     var thread = chatAgent.GetNewThread();
-            //     var newState = new ChatSessionState(thread);
-            //     return newState;
-            // });
-
-            // return state ?? throw new InvalidOperationException("Failed to create or retrieve chat session state.");
         }
 
         private sealed record CacheKey(string SessionId);
