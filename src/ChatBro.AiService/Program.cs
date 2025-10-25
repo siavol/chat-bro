@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+builder.AddRedisClient(connectionName: "redis");
+
 builder.Services
     .AddMemoryCache()
     .AddScoped<ChatService>()
