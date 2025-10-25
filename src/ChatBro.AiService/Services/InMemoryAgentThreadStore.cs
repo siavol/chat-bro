@@ -6,8 +6,8 @@ namespace ChatBro.AiService.Services;
 
 public class InMemoryAgentThreadStore(AIAgent agent, IMemoryCache cache, ILogger<InMemoryAgentThreadStore> logger) : IAgentThreadStore
 {
-    private JsonSerializerOptions JsonOptions => JsonSerializerOptions.Web;
-    private TimeSpan DefaultTtl => TimeSpan.FromDays(7);
+    private readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Default;
+    private readonly TimeSpan DefaultTtl = TimeSpan.FromDays(7);
 
     public Task<AgentThread> GetThreadAsync(string userId)
     {
