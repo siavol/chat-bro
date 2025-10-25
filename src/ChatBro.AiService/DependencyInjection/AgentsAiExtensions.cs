@@ -26,6 +26,7 @@ public static class AgentsAiExtensions
         appBuilder.Services.AddSingleton<FunctionMiddleware>();
         appBuilder.Services
             .AddTransient<IContextProvider, ContextProvider>()
+            .AddSingleton<IAgentThreadStore, InMemoryAgentThreadStore>()
             .AddTransient<InstructionsAIContextProvider>();
 
         appBuilder.Services.AddSingleton(appServices =>
@@ -48,12 +49,15 @@ public static class AgentsAiExtensions
                                     AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
                                 ]
                         },
-                        ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
-                            new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
-                            ctx.SerializedState,
-                            ctx.JsonSerializerOptions,
-                            InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
-                        ),
+                        ChatMessageStoreFactory = ctx =>
+                        {
+                            return new InMemoryChatMessageStore(
+                                                        new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
+                                                        ctx.SerializedState,
+                                                        ctx.JsonSerializerOptions,
+                                                        InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
+                                                    );
+                        },
                     },
                     services: appServices
                 )

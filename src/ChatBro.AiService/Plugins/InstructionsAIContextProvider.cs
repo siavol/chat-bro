@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ChatBro.AiService.Services;
 using Microsoft.Agents.AI;
 
@@ -28,4 +29,12 @@ public class InstructionsAIContextProvider(IContextProvider contextProvider, ILo
             throw;
         }
     }
+
+    public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
+    {
+        // Thread serialization throws exception when context serialization is not defined.
+        return JsonSerializer.SerializeToElement(new InternalState(), jsonSerializerOptions);
+    }
+
+    internal record InternalState();
 }
