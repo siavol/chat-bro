@@ -26,6 +26,7 @@ public static class AgentsAiExtensions
         appBuilder.Services.AddSingleton<FunctionMiddleware>();
         appBuilder.Services
             .AddTransient<IContextProvider, ContextProvider>()
+            .AddSingleton<IAgentThreadStore, InMemoryAgentThreadStore>()
             .AddTransient<InstructionsAIContextProvider>();
 
         appBuilder.Services.AddSingleton(appServices =>
