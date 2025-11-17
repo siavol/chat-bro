@@ -23,7 +23,12 @@ public class InMemoryAgentThreadStore(
             if (json.HasValue)
             {
                 var state = JsonSerializer.Deserialize<ThreadState>(json!, JsonOptions);
-                var thread = agent.DeserializeThread(state!.Json);
+                if (state == null || state.Json.ValueKind == JsonValueKind.Undefined)
+                {
+                    logger.LogWarning("Deserialized null or invalid state for user {UserId}", userId);
+                    return agent.GetNewThread();
+                }
+                var thread = agent.DeserializeThread(state.Json);
                 logger.LogDebug("Loaded thread for user {UserId} from Redis", userId);
                 return thread;
             }
