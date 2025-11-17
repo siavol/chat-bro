@@ -12,7 +12,8 @@ var redis = builder.AddRedis("redis")
     .WithPersistence(
         interval: TimeSpan.FromMinutes(5),
         keysChangedThreshold: 1
-    );
+    )
+    .WithLifetime(ContainerLifetime.Persistent);
 
 var restaurants = builder.AddProject<ChatBro_RestaurantsService>("chatbro-restaurants");
 
