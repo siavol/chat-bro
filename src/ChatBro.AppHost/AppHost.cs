@@ -1,12 +1,19 @@
 #pragma warning disable ASPIREINTERACTION001
 
-using Aspire.Hosting.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("docker-compose");
 
+var redis = builder.AddRedis("redis")
+    .WithRedisInsight()
+    .WithDataVolume()
+    .WithPersistence(
+        interval: TimeSpan.FromMinutes(5),
+        keysChangedThreshold: 1
+    )
+    .WithLifetime(ContainerLifetime.Persistent);
 
 var restaurants = builder.AddProject<ChatBro_RestaurantsService>("chatbro-restaurants");
 
@@ -19,6 +26,7 @@ var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
     .WithReference(openAi)
     .WithEnvironment("Chat__AiModel", openAiModel)
     .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
+    .WithReference(redis).WaitFor(redis)
     .WithReference(restaurants).WaitFor(restaurants);
 
 

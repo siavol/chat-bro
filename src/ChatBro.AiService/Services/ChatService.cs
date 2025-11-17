@@ -14,7 +14,7 @@ namespace ChatBro.AiService.Services
 
             logger.LogInformation("Sending chat request for user {UserId}", userId);
             var response = await chatAgent.RunAsync(message, thread);
-            logger.LogInformation("Received chat response for user {UserId}: {Metadata}", userId, response.AdditionalProperties);
+            logger.LogInformation("Received chat response for user {UserId}, metadata {Metadata}", userId, response.AdditionalProperties);
             if (string.IsNullOrWhiteSpace(response.Text))
             {
                 throw new InvalidOperationException("No text response from the model!");

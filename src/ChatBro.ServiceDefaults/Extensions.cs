@@ -70,7 +70,8 @@ public static class Extensions
                     .AddMeter(
                         "ChatBro.*",
                         "*Microsoft.Agents.AI",
-                        "OpenAI.*"
+                        "OpenAI.*",
+                        "StackExchange.Redis"
                     );
             })
             .WithTracing(tracing =>
@@ -80,6 +81,7 @@ public static class Extensions
                     .AddSource("*Microsoft.Extensions.AI")
                     .AddSource("*Microsoft.Extensions.Agents*")
                     .AddSource("OpenAI.*")
+                    .AddSource("OpenTelemetry.Instrumentation.StackExchangeRedis")
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
                         tracing.Filter = context =>
