@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.0.0
@@ -7,21 +7,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.AppHost", "src\Chat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.ServiceDefaults", "src\ChatBro.ServiceDefaults\ChatBro.ServiceDefaults.csproj", "{C327EEDC-A2E9-45C7-BBBF-4CA71091EC4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.TelegramBotService", "src\ChatBro.TelegramBotService\ChatBro.TelegramBotService.csproj", "{9ED4009D-77DF-4154-9C37-CDFB648D3DF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.TelegramBotService", "src\ChatBro.TelegramBotService\ChatBro.TelegramBotService.csproj", "{9ED4009D-77DF-4154-9C37-CDFB648D3DF8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{363602C8-BBCB-4F12-B7A6-BD71E44E3E83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.IntegrationTests", "tests\ChatBro.IntegrationTests\ChatBro.IntegrationTests.csproj", "{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.IntegrationTests", "tests\ChatBro.IntegrationTests\ChatBro.IntegrationTests.csproj", "{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.AiService", "src\ChatBro.AiService\ChatBro.AiService.csproj", "{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.AiService", "src\ChatBro.AiService\ChatBro.AiService.csproj", "{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.RestaurantsService", "src\ChatBro.RestaurantsService\ChatBro.RestaurantsService.csproj", "{0F971293-914A-4066-B6D2-7A18D5CE91D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.RestaurantsService", "src\ChatBro.RestaurantsService\ChatBro.RestaurantsService.csproj", "{0F971293-914A-4066-B6D2-7A18D5CE91D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.RestaurantsService.Model", "src\ChatBro.RestaurantsService.Model\ChatBro.RestaurantsService.Model.csproj", "{4101CCAE-77A3-4F8C-AD27-7B5DE51FC2C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.RestaurantsService.Model", "src\ChatBro.RestaurantsService.Model\ChatBro.RestaurantsService.Model.csproj", "{4101CCAE-77A3-4F8C-AD27-7B5DE51FC2C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.RestaurantsService.KernelFunction", "src\ChatBro.RestaurantsService.KernelFunction\ChatBro.RestaurantsService.KernelFunction.csproj", "{2E2BB8DA-00B6-41CB-888F-4E8B86393240}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.RestaurantsService.KernelFunction", "src\ChatBro.RestaurantsService.KernelFunction\ChatBro.RestaurantsService.KernelFunction.csproj", "{2E2BB8DA-00B6-41CB-888F-4E8B86393240}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBro.TelegramBotService.Tests", "tests\ChatBro.TelegramBotService.Tests\ChatBro.TelegramBotService.Tests.csproj", "{A62A60AA-03EB-40AC-8B4B-2A0C03C6DD60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.TelegramBotService.Tests", "tests\ChatBro.TelegramBotService.Tests\ChatBro.TelegramBotService.Tests.csproj", "{A62A60AA-03EB-40AC-8B4B-2A0C03C6DD60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -22,7 +22,7 @@ public class InMemoryAgentThreadStore(
             var json = await db.StringGetAsync(key);
             if (json.HasValue)
             {
-                var state = JsonSerializer.Deserialize<ThreadState>(json!, JsonOptions);
+                var state = JsonSerializer.Deserialize<ThreadState>(json.ToString(), JsonOptions);
                 if (state == null || state.Json.ValueKind == JsonValueKind.Undefined)
                 {
                     logger.LogWarning("Deserialized null or invalid state for user {UserId}", userId);
