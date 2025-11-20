@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_to_docker:
-        description: 'Publish to Docker when true'
+        description: 'Publish to Docker'
         required: false
         default: false
         type: boolean
