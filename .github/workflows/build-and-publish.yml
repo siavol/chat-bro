@@ -73,6 +73,12 @@ jobs:
     - name: Aspire publish (generate docker compose)
       run: dotnet tool run aspire publish -o artifacts
 
+    - name: Build Docker images
+      run: |
+        docker build -f src/ChatBro.TelegramBotService/Dockerfile -t chatbro-telegram-bot:local .
+        docker build -f src/ChatBro.AiService/Dockerfile -t chatbro-ai-service:local .
+        docker build -f src/ChatBro.RestaurantsService/Dockerfile -t chatbro-restaurants:local .
+
     - name: Upload compose artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -101,22 +107,31 @@ jobs:
       run: |
         echo "Version: ${{ env.VERSION_TAG }}"
 
-    - name: Tag and push image to Docker Hub
+    - name: Tag and push versioned image to Docker Hub
       run: |
         echo "Pushing chatbro-telegram-bot"
-        docker tag chatbro-telegram-bot ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
-        docker tag chatbro-telegram-bot ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:${{ env.VERSION_TAG }}
+        docker tag chatbro-telegram-bot:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:${{ env.VERSION_TAG }}
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:${{ env.VERSION_TAG }}
+
+        echo "Pushing chatbro-restaurants"
+        docker tag chatbro-restaurants:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
+
+        echo "Pushing chatbro-ai-service"
+        docker tag chatbro-ai-service:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
+
+    - name: Tag and push latest image to Docker Hub
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        echo "Pushing chatbro-telegram-bot"
+        docker tag chatbro-telegram-bot:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
 
         echo "Pushing chatbro-restaurants"
-        docker tag chatbro-restaurants ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
-        docker tag chatbro-restaurants ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
+        docker tag chatbro-restaurants:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
 
         echo "Pushing chatbro-ai-service"
-        docker tag chatbro-ai-service ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
-        docker tag chatbro-ai-service ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
+        docker tag chatbro-ai-service:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
