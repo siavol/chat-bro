@@ -95,7 +95,7 @@ jobs:
         VERSION_TAG="$DATE_TAG-$COMMIT_SHORT"
         echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
         echo "Version calculated: $VERSION_TAG"
-        echo "::set-output name=version::$VERSION_TAG"
+        echo "version=$VERSION_TAG" >> $GITHUB_OUTPUT
 
     - name: Report version
       run: |
