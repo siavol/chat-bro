@@ -17,6 +17,22 @@ var redis = builder.AddRedis("redis")
 
 var restaurants = builder.AddProject<ChatBro_RestaurantsService>("chatbro-restaurants");
 
+
+var paperlessMcpTag = "latest";
+    //builder.AddParameter("paperless-mcp-tag", value: "latest", publishValueAsDefault: true);
+var paperlessUrl = CreateUiSecretParameter(
+    "paperless-url", description: "Paperless-NGX URL.", placeholder: "http://paperless:8000");
+var paperlessApiKey = CreateUiSecretParameter(
+    "paperless-api-key", description: "Paperless-NGX API Key.", placeholder: "Enter api key");
+var paperlessMcpServer = builder.AddContainer("paperless-mcp", "ghcr.io/baruchiro/paperless-mcp")
+    .WithImageTag(paperlessMcpTag)
+    .WithHttpEndpoint(targetPort: 3000, name: "http")
+    .WithEnvironment("PAPERLESS_URL", paperlessUrl)
+    .WithEnvironment("PAPERLESS_API_KEY", paperlessApiKey)
+    // .WithArgs("--http")
+    .WithLifetime(ContainerLifetime.Persistent);
+
+
 var openAiApiKey = CreateUiSecretParameter(
     "openai-api-key", description: "OpenAI API Key.", placeholder: "Enter api key");
 var openAi = builder.AddOpenAI("openai")
@@ -28,6 +44,7 @@ var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
     .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
     .WithReference(redis).WaitFor(redis)
     .WithReference(restaurants).WaitFor(restaurants);
+    // .WithReference(paperlessMcpServer).WaitFor(paperlessMcpServer);
 
 
 var telegramToken = CreateUiSecretParameter(
