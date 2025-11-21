@@ -3,14 +3,15 @@ using Microsoft.Agents.AI;
 namespace ChatBro.AiService.Services
 {
     public class ChatService(
-        AIAgent chatAgent,
+        IAIAgentProvider agentProvider,
         IAgentThreadStore threadStore,
         ILogger<ChatService> logger
     )
     {
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
-            var thread = await threadStore.GetThreadAsync(userId);
+            var chatAgent = await agentProvider.GetAgentAsync();
+            var thread = await threadStore.GetThreadAsync(userId, chatAgent);
 
             logger.LogInformation("Sending chat request for user {UserId}", userId);
             var response = await chatAgent.RunAsync(message, thread);

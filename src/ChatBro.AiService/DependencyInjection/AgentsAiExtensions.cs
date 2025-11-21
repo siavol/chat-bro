@@ -39,56 +39,8 @@ public static class AgentsAiExtensions
         // Register MCP client for Paperless
         appBuilder.Services.AddSingleton<PaperlessMcpClient>();
 
-        appBuilder.Services.AddSingleton(appServices =>
-        {
-            var chatSettings = appServices.GetRequiredService<IOptions<ChatSettings>>();
-            var openAiClient = appServices.GetRequiredService<OpenAIClient>();
-            var functionMiddleware = appServices.GetRequiredService<FunctionMiddleware>();
-            var logger = appServices.GetRequiredService<ILogger<AIAgent>>();
-
-            // Get base AI tools
-            var tools = new List<AITool>
-            {
-                AIFunctionFactory.Create(RestaurantsPlugin.GetRestaurants, name: "get_restaurants"),
-                AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
-            };
-
-            // Add Paperless MCP tools
-            var paperlessMcpClient = appServices.GetRequiredService<PaperlessMcpClient>();
-            var mcpTools = paperlessMcpClient.GetToolsAsync().GetAwaiter().GetResult();
-            tools.AddRange(mcpTools);
-
-            var aiAgent = openAiClient
-                .GetChatClient(chatSettings.Value.AiModel)
-                .CreateAIAgent(new ChatClientAgentOptions()
-                    {
-                        Name = "RestaurantsAgent",
-                        Description = "An AI agent specialized in restaurant-related queries.",
-                        AIContextProviderFactory = ctx => appServices.GetRequiredService<InstructionsAIContextProvider>(),
-                        ChatOptions = new ChatOptions()
-                        {
-                            Tools = [.. tools]
-                        },
-                        ChatMessageStoreFactory = ctx =>
-                        {
-                            return new InMemoryChatMessageStore(
-                                                        new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
-                                                        ctx.SerializedState,
-                                                        ctx.JsonSerializerOptions,
-                                                        InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
-                                                    );
-                        },
-                    },
-                    services: appServices
-                )
-                .AsBuilder()
-                .Use(functionMiddleware.CustomFunctionCallingMiddleware)
-                .UseOpenTelemetry(
-                    sourceName: "ChatBro.AiService.Agent",
-                    configure: cfg => cfg.EnableSensitiveData = true)
-                .Build();
-            return aiAgent;
-        });
+        // Register AI Agent Provider
+        appBuilder.Services.AddSingleton<IAIAgentProvider, AIAgentProvider>();
 
         return appBuilder;
     }
