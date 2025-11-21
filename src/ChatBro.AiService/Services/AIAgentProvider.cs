@@ -18,12 +18,6 @@ public class AIAgentProvider(
     IServiceProvider serviceProvider,
     ILogger<AIAgentProvider> logger) : IAIAgentProvider
 {
-    private readonly IOptions<ChatSettings> _chatSettings = chatSettings;
-    private readonly OpenAIClient _openAiClient = openAiClient;
-    private readonly FunctionMiddleware _functionMiddleware = functionMiddleware;
-    private readonly PaperlessMcpClient _paperlessMcpClient = paperlessMcpClient;
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
-    private readonly ILogger<AIAgentProvider> _logger = logger;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private AIAgent? _cachedAgent;
 
@@ -42,7 +36,7 @@ public class AIAgentProvider(
                 return _cachedAgent;
             }
 
-            _logger.LogInformation("Creating AI agent with tools");
+            logger.LogInformation("Creating AI agent with tools");
 
             // Get base AI tools
             var tools = new List<AITool>
@@ -52,17 +46,17 @@ public class AIAgentProvider(
             };
 
             // Add Paperless MCP tools asynchronously
-            var mcpTools = await _paperlessMcpClient.GetToolsAsync();
+            var mcpTools = await paperlessMcpClient.GetToolsAsync();
             tools.AddRange(mcpTools);
-            _logger.LogInformation("Added {Count} Paperless MCP tools to agent", mcpTools.Count);
+            logger.LogInformation("Added {Count} Paperless MCP tools to agent", mcpTools.Count);
 
-            var aiAgent = _openAiClient
-                .GetChatClient(_chatSettings.Value.AiModel)
+            var aiAgent = openAiClient
+                .GetChatClient(chatSettings.Value.AiModel)
                 .CreateAIAgent(new ChatClientAgentOptions()
                     {
                         Name = "RestaurantsAgent",
                         Description = "An AI agent specialized in restaurant-related queries.",
-                        AIContextProviderFactory = ctx => _serviceProvider.GetRequiredService<InstructionsAIContextProvider>(),
+                        AIContextProviderFactory = ctx => serviceProvider.GetRequiredService<InstructionsAIContextProvider>(),
                         ChatOptions = new ChatOptions()
                         {
                             Tools = [.. tools]
@@ -70,24 +64,24 @@ public class AIAgentProvider(
                         ChatMessageStoreFactory = ctx =>
                         {
                             return new InMemoryChatMessageStore(
-                                new MessageCountingChatReducer(_chatSettings.Value.History.ReduceOnMessageCount),
+                                new MessageCountingChatReducer(chatSettings.Value.History.ReduceOnMessageCount),
                                 ctx.SerializedState,
                                 ctx.JsonSerializerOptions,
                                 InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded
                             );
                         },
                     },
-                    services: _serviceProvider
+                    services: serviceProvider
                 )
                 .AsBuilder()
-                .Use(_functionMiddleware.CustomFunctionCallingMiddleware)
+                .Use(functionMiddleware.CustomFunctionCallingMiddleware)
                 .UseOpenTelemetry(
                     sourceName: "ChatBro.AiService.Agent",
                     configure: cfg => cfg.EnableSensitiveData = true)
                 .Build();
 
             _cachedAgent = aiAgent;
-            _logger.LogInformation("AI agent created and cached");
+            logger.LogInformation("AI agent created and cached");
             return aiAgent;
         }
         finally
