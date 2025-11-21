@@ -24,8 +24,7 @@ var paperlessUrl = CreateUiParameter("paperless-url",
     inputType: InputType.Text);
 var paperlessApiKey = CreateUiParameter(
     "paperless-api-key", description: "Paperless-NGX API Key.", placeholder: "Enter api key");
-var paperlessMcpServer = builder.AddPaperlessMcp("paperless-mcp", paperlessUrl, paperlessApiKey)
-    .WithLifetime(ContainerLifetime.Persistent);
+var paperlessMcpServer = builder.AddPaperlessMcp("paperless-mcp", paperlessUrl, paperlessApiKey);
 
 
 var openAiApiKey = CreateUiParameter(
