@@ -53,7 +53,7 @@ public sealed class PaperlessMcpClient : IAsyncDisposable
 
         try
         {
-            var mcpClient = await _mcpClientTask;        
+            var mcpClient = await _mcpClientTask;
 
             var mcpTools = await mcpClient.ListToolsAsync();
             _cachedTools = [.. mcpTools];
