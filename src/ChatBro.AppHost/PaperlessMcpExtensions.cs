@@ -44,7 +44,7 @@ public class PaperlessMcpResource(string name, ParameterResource paperlessUrl, P
             }
             
             var builder = new ReferenceExpressionBuilder();
-            builder.Append($"{PrimaryEndpoint.Property(EndpointProperty.Url)}");
+            builder.Append(PrimaryEndpoint.Property(EndpointProperty.Url));
             builder.AppendLiteral("/mcp");
             return builder.Build();
         }
