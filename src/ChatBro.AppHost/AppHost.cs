@@ -20,9 +20,11 @@ var restaurants = builder.AddProject<ChatBro_RestaurantsService>("chatbro-restau
 
 var paperlessMcpTag = "latest";
     //builder.AddParameter("paperless-mcp-tag", value: "latest", publishValueAsDefault: true);
-var paperlessUrl = CreateUiSecretParameter(
-    "paperless-url", description: "Paperless-NGX URL.", placeholder: "http://paperless:8000");
-var paperlessApiKey = CreateUiSecretParameter(
+var paperlessUrl = CreateUiParameter("paperless-url", 
+    description: "Paperless-NGX URL.", 
+    placeholder: "http://paperless:8000",
+    inputType: InputType.Text);
+var paperlessApiKey = CreateUiParameter(
     "paperless-api-key", description: "Paperless-NGX API Key.", placeholder: "Enter api key");
 var paperlessMcpServer = builder.AddContainer("paperless-mcp", "ghcr.io/baruchiro/paperless-mcp")
     .WithImageTag(paperlessMcpTag)
@@ -33,7 +35,7 @@ var paperlessMcpServer = builder.AddContainer("paperless-mcp", "ghcr.io/baruchir
     .WithLifetime(ContainerLifetime.Persistent);
 
 
-var openAiApiKey = CreateUiSecretParameter(
+var openAiApiKey = CreateUiParameter(
     "openai-api-key", description: "OpenAI API Key.", placeholder: "Enter api key");
 var openAi = builder.AddOpenAI("openai")
     .WithApiKey(openAiApiKey);
@@ -47,7 +49,7 @@ var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
     // .WithReference(paperlessMcpServer).WaitFor(paperlessMcpServer);
 
 
-var telegramToken = CreateUiSecretParameter(
+var telegramToken = CreateUiParameter(
     "telegram-token", description: "Telegram bot token.", placeholder: "Enter token secret:secret");
 builder.AddProject<ChatBro_TelegramBotService>("chatbro-telegram-bot")
     .WithEnvironment("Telegram__Token", telegramToken)
@@ -58,7 +60,9 @@ builder.Build().Run();
 
 return;
 
-IResourceBuilder<ParameterResource> CreateUiSecretParameter(string name, string description, string? placeholder = null)
+IResourceBuilder<ParameterResource> CreateUiParameter(string name, string description, 
+    string? placeholder = null,
+    InputType inputType = InputType.SecretText)
 {
     var configValue = builder.Configuration.GetValue<string>(name);
     if (configValue is not null)
@@ -66,12 +70,13 @@ IResourceBuilder<ParameterResource> CreateUiSecretParameter(string name, string 
         return builder.AddParameter(name, configValue);
     }
 
-    return builder.AddParameter(name, secret: true)
+    var isSecret = inputType == InputType.SecretText;
+    return builder.AddParameter(name, secret: isSecret)
         .WithDescription(description)
         .WithCustomInput(p => new InteractionInput
         {
             Name = name,
-            InputType = InputType.SecretText,
+            InputType = inputType,
             Label = p.Name,
             Placeholder = placeholder
         });
