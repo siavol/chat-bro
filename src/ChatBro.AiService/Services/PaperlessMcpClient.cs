@@ -61,19 +61,26 @@ public sealed class PaperlessMcpClient : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        var mcpClient = await _mcpClientTask;
-        
-        if (mcpClient != null)
+        try
         {
-            try
+            var mcpClient = await _mcpClientTask;
+
+            if (mcpClient != null)
             {
-                await mcpClient.DisposeAsync();
-                _logger.LogInformation("Paperless MCP client disposed");
+                try
+                {
+                    await mcpClient.DisposeAsync();
+                    _logger.LogInformation("Paperless MCP client disposed");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error disposing Paperless MCP client");
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error disposing Paperless MCP client");
-            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error awaiting MCP client task during disposal");
         }
     }
 }
