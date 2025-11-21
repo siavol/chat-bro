@@ -51,12 +51,21 @@ public sealed class PaperlessMcpClient : IAsyncDisposable
             return _cachedTools;
         }
 
-        var mcpClient = await _mcpClientTask;        
+        try
+        {
+            var mcpClient = await _mcpClientTask;        
 
-        var mcpTools = await mcpClient.ListToolsAsync();
-        _cachedTools = [.. mcpTools];
-        _logger.LogInformation("Retrieved and cached {Count} tools from Paperless MCP server", _cachedTools.Count);
-        return _cachedTools;
+            var mcpTools = await mcpClient.ListToolsAsync();
+            _cachedTools = [.. mcpTools];
+            _logger.LogInformation("Retrieved and cached {Count} tools from Paperless MCP server", _cachedTools.Count);
+            return _cachedTools;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to retrieve tools from Paperless MCP server. Returning empty list.");
+            _cachedTools = [];
+            return _cachedTools;
+        }
     }
 
     public async ValueTask DisposeAsync()
