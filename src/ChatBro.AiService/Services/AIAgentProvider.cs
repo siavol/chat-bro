@@ -10,13 +10,13 @@ namespace ChatBro.AiService.Services;
 
 #pragma warning disable MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-public class AIAgentProvider(
+public sealed class AIAgentProvider(
     IOptions<ChatSettings> chatSettings,
     OpenAIClient openAiClient,
     FunctionMiddleware functionMiddleware,
     PaperlessMcpClient paperlessMcpClient,
     IServiceProvider serviceProvider,
-    ILogger<AIAgentProvider> logger) : IAIAgentProvider
+    ILogger<AIAgentProvider> logger) : IAIAgentProvider, IDisposable
 {
     private readonly SemaphoreSlim _lock = new(1, 1);
     private AIAgent? _cachedAgent;
@@ -88,5 +88,10 @@ public class AIAgentProvider(
         {
             _lock.Release();
         }
+    }
+
+    public void Dispose()
+    {
+        _lock.Dispose();
     }
 }
