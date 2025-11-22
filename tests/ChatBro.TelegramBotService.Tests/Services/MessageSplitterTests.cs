@@ -1,4 +1,4 @@
-﻿using ChatBro.TelegramBotService.Services;
+﻿using ChatBro.AiService.Services.Telegram;
 
 namespace ChatBro.TelegramBotService.Tests.Services;
 

@@ -43,9 +43,7 @@ var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
 
 var telegramToken = CreateUiParameter(
     "telegram-token", description: "Telegram bot token.", placeholder: "Enter token secret:secret");
-builder.AddProject<ChatBro_TelegramBotService>("chatbro-telegram-bot")
-    .WithEnvironment("Telegram__Token", telegramToken)
-    .WithReference(aiService).WaitFor(aiService);
+aiService = aiService.WithEnvironment("Telegram__Token", telegramToken);
 
 
 builder.Build().Run();

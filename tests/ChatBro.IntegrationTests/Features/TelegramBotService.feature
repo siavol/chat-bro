@@ -1,12 +1,12 @@
 ﻿Feature: Telegram Bot Service
     
-    Telegram Bot Service is responsible for the sending and receiving 
-    messages from telegram bot and initiating processing with other
-    services.
+    Telegram Bot capability is hosted inside chatbro-ai-service and is responsible
+    for sending and receiving messages from telegram while coordinating with
+    other services.
     
 Scenario: Telegram Bot Service reports healthy status when running.
     Given the application is started
-    When I send HTTP request to the chatbro-telegram-bot service
+    When I send HTTP request to the chatbro-ai-service service
     And request is GET /health
     Then the response status is 200
 

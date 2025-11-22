@@ -75,7 +75,6 @@ jobs:
 
     - name: Build Docker images
       run: |
-        docker build -f src/ChatBro.TelegramBotService/Dockerfile -t chatbro-telegram-bot:local .
         docker build -f src/ChatBro.AiService/Dockerfile -t chatbro-ai-service:local .
         docker build -f src/ChatBro.RestaurantsService/Dockerfile -t chatbro-restaurants:local .
 
@@ -109,10 +108,6 @@ jobs:
 
     - name: Tag and push versioned image to Docker Hub
       run: |
-        echo "Pushing chatbro-telegram-bot"
-        docker tag chatbro-telegram-bot:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:${{ env.VERSION_TAG }}
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:${{ env.VERSION_TAG }}
-
         echo "Pushing chatbro-restaurants"
         docker tag chatbro-restaurants:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
@@ -124,10 +119,6 @@ jobs:
     - name: Tag and push latest image to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
-        echo "Pushing chatbro-telegram-bot"
-        docker tag chatbro-telegram-bot:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-telegram-bot:latest
-
         echo "Pushing chatbro-restaurants"
         docker tag chatbro-restaurants:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest

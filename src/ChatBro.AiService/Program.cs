@@ -16,6 +16,7 @@ builder.Services.AddHttpClient<RestaurantsServiceClient>(
     static client => client.BaseAddress = new Uri("https+http://chatbro-restaurants"));
 
 builder.AddAgents();
+builder.AddTelegramBotIfConfigured();
 
 var app = builder.Build();
 
