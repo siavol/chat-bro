@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using ChatBro.Server.Services;
 using ChatBro.ServiceDefaults;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
@@ -10,13 +9,13 @@ using Telegram.Bot.Types.Enums;
 
 namespace ChatBro.Server.Services.Telegram;
 
-public class TelegramBotHostedService(
+public sealed class TelegramBotHostedService(
     IOptions<TelegramServiceOptions> options,
     IServiceScopeFactory scopeFactory,
     MessageSplitter splitter,
     ILogger<TelegramBotHostedService> logger,
     ActivitySource activitySource)
-    : IHostedService
+    : IHostedService, IDisposable
 {
     private readonly TelegramServiceOptions _telegramOptions = options.Value;
     private TelegramBotClient? _telegramBotClient;
@@ -29,7 +28,7 @@ public class TelegramBotHostedService(
 
         var receiverOptions = new ReceiverOptions
         {
-            AllowedUpdates = new[] { UpdateType.Message }
+            AllowedUpdates = [UpdateType.Message]
         };
 
         _telegramBotClient.StartReceiving(
@@ -124,6 +123,11 @@ public class TelegramBotHostedService(
         }
 
         return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _receiverCts?.Dispose();
     }
 }
 

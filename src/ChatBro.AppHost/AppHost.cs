@@ -34,7 +34,7 @@ var openAiApiKey = CreateUiParameter(
 var openAi = builder.AddOpenAI("openai")
     .WithApiKey(openAiApiKey);
 var openAiModel = builder.AddParameter("openai-model", value: "gpt-5-nano", publishValueAsDefault: true);
-var server = builder.AddProject<ChatBro_Server>("chatbro-server")
+builder.AddProject<ChatBro_Server>("chatbro-server")
     .WithReference(openAi)
     .WithEnvironment("Chat__AiModel", openAiModel)
     .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
