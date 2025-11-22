@@ -43,7 +43,8 @@ public sealed class PaperlessMcpClient : IAsyncDisposable
     /// Gets the list of AI tools available from the Paperless MCP server.
     /// Tools are cached after the first retrieval.
     /// </summary>
-    /// <returns>List of AI tools, or empty list if not connected.</returns>
+    /// <returns>List of AI tools from the Paperless MCP server.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the Paperless MCP connection string is not configured.</exception>
     public async Task<IReadOnlyList<AITool>> GetToolsAsync()
     {
         if (_cachedTools != null)
