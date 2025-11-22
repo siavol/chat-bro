@@ -5,7 +5,6 @@ using StackExchange.Redis;
 namespace ChatBro.AiService.Services;
 
 public class InMemoryAgentThreadStore(
-    AIAgent agent,
     IConnectionMultiplexer redis,
     ILogger<InMemoryAgentThreadStore> logger)
     : IAgentThreadStore
@@ -13,7 +12,7 @@ public class InMemoryAgentThreadStore(
     private readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Web;
     private readonly TimeSpan DefaultTtl = TimeSpan.FromDays(7);
 
-    public async Task<AgentThread> GetThreadAsync(string userId)
+    public async Task<AgentThread> GetThreadAsync(string userId, AIAgent agent)
     {
         var db = redis.GetDatabase();
         var key = BuildKey(userId);

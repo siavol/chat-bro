@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-preview.251016.1" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251016.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageReference Include="ModelContextProtocol" Version="0.4.0-preview.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChatBro.RestaurantsService.KernelFunction\ChatBro.RestaurantsService.KernelFunction.csproj" />
