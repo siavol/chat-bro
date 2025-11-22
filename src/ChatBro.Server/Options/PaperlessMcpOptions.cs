@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ChatBro.AiService.Options;
+namespace ChatBro.Server.Options;
 
 public class PaperlessMcpOptions
 {
@@ -11,3 +11,4 @@ public class PaperlessMcpOptions
     [Required(AllowEmptyStrings = false)]
     public string ConnectionString { get; set; } = string.Empty;
 }
+

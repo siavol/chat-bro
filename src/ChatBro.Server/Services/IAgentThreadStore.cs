@@ -1,6 +1,6 @@
 using Microsoft.Agents.AI;
 
-namespace ChatBro.AiService.Services;
+namespace ChatBro.Server.Services;
 
 public interface IAgentThreadStore
 {
@@ -14,3 +14,4 @@ public interface IAgentThreadStore
     /// </summary>
     Task SaveThreadAsync(string userId, AgentThread thread);
 }
+

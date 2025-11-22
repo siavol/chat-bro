@@ -2,7 +2,7 @@ using System.Diagnostics;
 using ChatBro.ServiceDefaults;
 using OpenTelemetry;
 
-namespace ChatBro.AiService.Services.Telegram;
+namespace ChatBro.Server.Services.Telegram;
 
 public class TelegramApiFilterProcessor : BaseProcessor<Activity>
 {
@@ -28,3 +28,4 @@ public class TelegramApiFilterProcessor : BaseProcessor<Activity>
         }
     }
 }
+

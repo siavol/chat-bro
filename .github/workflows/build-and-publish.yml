@@ -75,7 +75,7 @@ jobs:
 
     - name: Build Docker images
       run: |
-        docker build -f src/ChatBro.AiService/Dockerfile -t chatbro-ai-service:local .
+        docker build -f src/ChatBro.Server/Dockerfile -t chatbro-server:local .
         docker build -f src/ChatBro.RestaurantsService/Dockerfile -t chatbro-restaurants:local .
 
     - name: Upload compose artifacts
@@ -112,9 +112,9 @@ jobs:
         docker tag chatbro-restaurants:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:${{ env.VERSION_TAG }}
 
-        echo "Pushing chatbro-ai-service"
-        docker tag chatbro-ai-service:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:${{ env.VERSION_TAG }}
+        echo "Pushing chatbro-server"
+        docker tag chatbro-server:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-server:${{ env.VERSION_TAG }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-server:${{ env.VERSION_TAG }}
 
     - name: Tag and push latest image to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -123,6 +123,7 @@ jobs:
         docker tag chatbro-restaurants:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-restaurants:latest
 
-        echo "Pushing chatbro-ai-service"
-        docker tag chatbro-ai-service:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-ai-service:latest
+        echo "Pushing chatbro-server"
+        docker tag chatbro-server:local ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-server:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/chatbro-server:latest
+

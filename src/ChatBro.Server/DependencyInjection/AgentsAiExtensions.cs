@@ -1,8 +1,8 @@
-﻿using ChatBro.AiService.Options;
-using ChatBro.AiService.Plugins;
-using ChatBro.AiService.Services;
+using ChatBro.Server.Options;
+using ChatBro.Server.Plugins;
+using ChatBro.Server.Services;
 
-namespace ChatBro.AiService.DependencyInjection;
+namespace ChatBro.Server.DependencyInjection;
 
 public static class AgentsAiExtensions
 {
@@ -38,3 +38,4 @@ public static class AgentsAiExtensions
         return appBuilder;
     }
 }
+

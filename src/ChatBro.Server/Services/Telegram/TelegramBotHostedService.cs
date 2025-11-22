@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using ChatBro.AiService.Services;
+using ChatBro.Server.Services;
 using ChatBro.ServiceDefaults;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
@@ -8,7 +8,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace ChatBro.AiService.Services.Telegram;
+namespace ChatBro.Server.Services.Telegram;
 
 public class TelegramBotHostedService(
     IOptions<TelegramServiceOptions> options,
@@ -126,3 +126,4 @@ public class TelegramBotHostedService(
         return Task.CompletedTask;
     }
 }
+

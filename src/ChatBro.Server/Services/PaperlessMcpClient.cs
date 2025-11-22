@@ -1,9 +1,9 @@
-using ChatBro.AiService.Options;
+using ChatBro.Server.Options;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using ModelContextProtocol.Client;
 
-namespace ChatBro.AiService.Services;
+namespace ChatBro.Server.Services;
 
 /// <summary>
 /// Client for connecting to and retrieving tools from Paperless MCP server.
@@ -85,3 +85,4 @@ public sealed class PaperlessMcpClient : IAsyncDisposable
         }
     }
 }
+

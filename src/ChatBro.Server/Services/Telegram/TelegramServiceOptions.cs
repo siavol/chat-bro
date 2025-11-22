@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ChatBro.AiService.Services.Telegram;
+namespace ChatBro.Server.Services.Telegram;
 
 public class TelegramServiceOptions
 {
@@ -8,3 +8,4 @@ public class TelegramServiceOptions
     [MinLength(1)]
     public required string Token { get; init; }
 }
+

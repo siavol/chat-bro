@@ -1,7 +1,7 @@
-﻿using ChatBro.RestaurantsService.KernelFunction;
+using ChatBro.RestaurantsService.KernelFunction;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ChatBro.AiService.Controllers;
+namespace ChatBro.Server.Controllers;
 
 [ApiController]
 [Route("test")]

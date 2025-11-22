@@ -1,4 +1,4 @@
-namespace ChatBro.AiService.Options;
+namespace ChatBro.Server.Options;
 
 public class ChatSettings
 {
@@ -13,3 +13,4 @@ public class ChatSettings
         public string Shared { get; init; } = "contexts/shared.md";
     }
 }
+

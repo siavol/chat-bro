@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{363602C8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.IntegrationTests", "tests\ChatBro.IntegrationTests\ChatBro.IntegrationTests.csproj", "{A8547BC1-8F1C-4CDA-8933-F3FA1652555B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.AiService", "src\ChatBro.AiService\ChatBro.AiService.csproj", "{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.Server", "src\ChatBro.Server\ChatBro.Server.csproj", "{982E7F7F-0293-4936-AE6C-FF35A9F1A21E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatBro.RestaurantsService", "src\ChatBro.RestaurantsService\ChatBro.RestaurantsService.csproj", "{0F971293-914A-4066-B6D2-7A18D5CE91D5}"
 EndProject

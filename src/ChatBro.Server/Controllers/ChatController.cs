@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
-using ChatBro.AiService.Services;
+using System.Diagnostics;
+using ChatBro.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ChatBro.AiService.Controllers;
+namespace ChatBro.Server.Controllers;
 
 [ApiController]
 [Route("chat")]

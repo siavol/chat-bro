@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using ChatBro.AiService.Services.Telegram;
+using ChatBro.Server.Services.Telegram;
 using OpenTelemetry.Trace;
 
-namespace ChatBro.AiService.DependencyInjection;
+namespace ChatBro.Server.DependencyInjection;
 
 public static class TelegramBotServiceExtensions
 {
@@ -27,3 +27,4 @@ public static class TelegramBotServiceExtensions
         return builder;
     }
 }
+

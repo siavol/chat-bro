@@ -32,7 +32,7 @@ var openAiApiKey = CreateUiParameter(
 var openAi = builder.AddOpenAI("openai")
     .WithApiKey(openAiApiKey);
 var openAiModel = builder.AddParameter("openai-model", value: "gpt-5-nano", publishValueAsDefault: true);
-var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
+var server = builder.AddProject<ChatBro_Server>("chatbro-server")
     .WithReference(openAi)
     .WithEnvironment("Chat__AiModel", openAiModel)
     .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
@@ -43,7 +43,7 @@ var aiService = builder.AddProject<ChatBro_AiService>("chatbro-ai-service")
 
 var telegramToken = CreateUiParameter(
     "telegram-token", description: "Telegram bot token.", placeholder: "Enter token secret:secret");
-aiService = aiService.WithEnvironment("Telegram__Token", telegramToken);
+server = server.WithEnvironment("Telegram__Token", telegramToken);
 
 
 builder.Build().Run();

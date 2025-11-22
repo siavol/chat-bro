@@ -1,12 +1,12 @@
-using ChatBro.AiService.Options;
-using ChatBro.AiService.Plugins;
+using ChatBro.Server.Options;
+using ChatBro.Server.Plugins;
 using ChatBro.RestaurantsService.KernelFunction;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using OpenAI;
 
-namespace ChatBro.AiService.Services;
+namespace ChatBro.Server.Services;
 
 #pragma warning disable MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
@@ -76,7 +76,7 @@ public sealed class AIAgentProvider(
                 .AsBuilder()
                 .Use(functionMiddleware.CustomFunctionCallingMiddleware)
                 .UseOpenTelemetry(
-                    sourceName: "ChatBro.AiService.Agent",
+                    sourceName: "ChatBro.Server.Agent",
                     configure: cfg => cfg.EnableSensitiveData = true)
                 .Build();
 
@@ -95,3 +95,4 @@ public sealed class AIAgentProvider(
         _lock.Dispose();
     }
 }
+

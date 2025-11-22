@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
-using ChatBro.AiService.Options;
+using ChatBro.Server.Options;
 
-namespace ChatBro.AiService.Services;
+namespace ChatBro.Server.Services;
 
 public interface IContextProvider
 {
@@ -34,3 +34,4 @@ public class ContextProvider : IContextProvider
         return context;
     }
 }
+

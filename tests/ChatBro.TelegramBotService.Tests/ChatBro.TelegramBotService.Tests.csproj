@@ -15,6 +15,6 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ChatBro.AiService\ChatBro.AiService.csproj" />
+    <ProjectReference Include="..\..\src\ChatBro.Server\ChatBro.Server.csproj" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
-using ChatBro.AiService.DependencyInjection;
-using ChatBro.AiService.Services;
+using ChatBro.Server.DependencyInjection;
+using ChatBro.Server.Services;
 using ChatBro.RestaurantsService.KernelFunction;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,3 +30,4 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+

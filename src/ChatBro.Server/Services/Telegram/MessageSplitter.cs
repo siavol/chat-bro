@@ -1,4 +1,4 @@
-namespace ChatBro.AiService.Services.Telegram;
+namespace ChatBro.Server.Services.Telegram;
 
 public class MessageSplitter
 {
@@ -67,3 +67,4 @@ public class MessageSplitter
         return splitAt != -1 ? splitAt : limit;
     }
 }
+

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-namespace ChatBro.AiService.Plugins;
+namespace ChatBro.Server.Plugins;
 
 public class FunctionMiddleware(ILogger<FunctionMiddleware> logger)
 {
@@ -24,3 +24,4 @@ public class FunctionMiddleware(ILogger<FunctionMiddleware> logger)
         return result;
     }
 }
+

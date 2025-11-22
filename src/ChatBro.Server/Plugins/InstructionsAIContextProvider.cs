@@ -1,8 +1,8 @@
 using System.Text.Json;
-using ChatBro.AiService.Services;
+using ChatBro.Server.Services;
 using Microsoft.Agents.AI;
 
-namespace ChatBro.AiService.Plugins;
+namespace ChatBro.Server.Plugins;
 
 public class InstructionsAIContextProvider(IContextProvider contextProvider, ILogger<InstructionsAIContextProvider> logger) : AIContextProvider
 {
@@ -38,3 +38,4 @@ public class InstructionsAIContextProvider(IContextProvider contextProvider, ILo
 
     internal record InternalState();
 }
+
