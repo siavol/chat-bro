@@ -27,6 +27,8 @@ var paperlessApiKey = CreateUiParameter(
 var paperlessMcpServer = builder.AddPaperlessMcp("paperless-mcp", paperlessUrl, paperlessApiKey);
 
 
+var telegramToken = CreateUiParameter(
+    "telegram-token", description: "Telegram bot token.", placeholder: "Enter token secret:secret");
 var openAiApiKey = CreateUiParameter(
     "openai-api-key", description: "OpenAI API Key.", placeholder: "Enter api key");
 var openAi = builder.AddOpenAI("openai")
@@ -38,12 +40,8 @@ var server = builder.AddProject<ChatBro_Server>("chatbro-server")
     .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
     .WithReference(redis).WaitFor(redis)
     .WithReference(restaurants).WaitFor(restaurants)
+    .WithEnvironment("Telegram__Token", telegramToken)
     .WithReference(paperlessMcpServer).WaitFor(paperlessMcpServer);
-
-
-var telegramToken = CreateUiParameter(
-    "telegram-token", description: "Telegram bot token.", placeholder: "Enter token secret:secret");
-server = server.WithEnvironment("Telegram__Token", telegramToken);
 
 
 builder.Build().Run();
