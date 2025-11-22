@@ -25,5 +25,11 @@ namespace ChatBro.Server.Services
 
             return response.Text;
         }
+
+        public async Task<bool> ResetChatAsync(string userId)
+        {
+            logger.LogInformation("Resetting chat thread for user {UserId}", userId);
+            return await threadStore.DeleteThreadAsync(userId);
+        }
     }
 }

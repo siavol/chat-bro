@@ -57,6 +57,31 @@ public class InMemoryAgentThreadStore(
             logger.LogError(ex, "Failed to serialize thread for user {UserId}", userId);
         }
     }
+
+    public async Task<bool> DeleteThreadAsync(string userId)
+    {
+        var db = redis.GetDatabase();
+        var key = BuildKey(userId);
+        try
+        {
+            var deleted = await db.KeyDeleteAsync(key);
+            if (deleted)
+            {
+                logger.LogInformation("Deleted thread for user {UserId} from Redis", userId);
+            }
+            else
+            {
+                logger.LogDebug("No thread found to delete for user {UserId}", userId);
+            }
+
+            return deleted;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to delete thread for user {UserId}", userId);
+            throw;
+        }
+    }
         
     private static string BuildKey(string userId) => $"chatbro:thread:{userId}";
     

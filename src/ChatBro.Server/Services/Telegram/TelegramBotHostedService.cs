@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using ChatBro.ServiceDefaults;
 using Microsoft.Extensions.Options;
@@ -21,7 +22,7 @@ public sealed class TelegramBotHostedService(
     private TelegramBotClient? _telegramBotClient;
     private CancellationTokenSource? _receiverCts;
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         _telegramBotClient = new TelegramBotClient(_telegramOptions.Token);
         _receiverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -37,8 +38,9 @@ public sealed class TelegramBotHostedService(
             receiverOptions,
             _receiverCts.Token);
 
+        await RegisterCommandsAsync(cancellationToken);
+
         logger.LogInformation("Telegram bot polling started.");
-        return Task.CompletedTask;
     }
 
     private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -63,9 +65,16 @@ public sealed class TelegramBotHostedService(
             return;
         }
 
+        var userId = message.Chat.Id.ToString();
+        var trimmedMessage = message.Text.Trim();
+        if (IsResetCommand(trimmedMessage))
+        {
+            await HandleResetCommandAsync(botClient, message.Chat, userId, cancellationToken);
+            return;
+        }
+
         try
         {
-            var userId = message.Chat.Id.ToString();
             string replyText;
             using (var scope = scopeFactory.CreateScope())
             {
@@ -101,6 +110,31 @@ public sealed class TelegramBotHostedService(
         }
     }
 
+    private static bool IsResetCommand(string messageText) =>
+        messageText.StartsWith("/reset", StringComparison.OrdinalIgnoreCase);
+
+    private async Task HandleResetCommandAsync(ITelegramBotClient botClient, Chat chat, string userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var scope = scopeFactory.CreateScope();
+            var chatService = scope.ServiceProvider.GetRequiredService<ChatService>();
+            var historyCleared = await chatService.ResetChatAsync(userId);
+            var reply = historyCleared
+                ? "Your AI chat history has been cleared."
+                : "There was no stored AI chat history, you are already starting fresh.";
+
+            await botClient.SendMessage(chat, reply, cancellationToken: cancellationToken);
+            logger.LogInformation("Reset command handled for user {UserId}, cleared={Cleared}", userId, historyCleared);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to handle reset command for user {UserId}", userId);
+            await SendErrorMessageAsync(botClient, chat, ex, cancellationToken);
+            throw;
+        }
+    }
+
     private async Task SendErrorMessageAsync(ITelegramBotClient botClient, Chat chat, Exception exception, CancellationToken cancellationToken)
     {
         await botClient.SendMessage(
@@ -113,6 +147,33 @@ public sealed class TelegramBotHostedService(
     {
         logger.LogError(exception, "Telegram polling failed");
         return Task.CompletedTask;
+    }
+
+    private async Task RegisterCommandsAsync(CancellationToken cancellationToken)
+    {
+        if (_telegramBotClient is null)
+        {
+            return;
+        }
+
+        var commands = new[]
+        {
+            new BotCommand
+            {
+                Command = "reset",
+                Description = "Clear AI chat history"
+            }
+        };
+
+        try
+        {
+            await _telegramBotClient.SetMyCommands(commands, cancellationToken: cancellationToken);
+            logger.LogInformation("Registered Telegram bot commands");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to register Telegram bot commands");
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
