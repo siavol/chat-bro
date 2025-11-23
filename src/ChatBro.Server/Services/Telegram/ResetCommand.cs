@@ -11,6 +11,5 @@ public class ResetCommand(ILogger<ResetCommand> logger) : ITelegramCommand
         logger.LogInformation("Resetting chat history for user {UserId}", userId);
         await chatService.ResetChatAsync(userId);
         return "🧹✅";
-
     }
 }
