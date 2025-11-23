@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using ModelContextProtocol.Client;
 
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 /// <summary>
 /// Client for connecting to and retrieving tools from Paperless MCP server.

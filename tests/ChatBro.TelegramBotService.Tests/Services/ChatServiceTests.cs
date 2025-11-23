@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using ChatBro.Server.Services;
+using ChatBro.Server.Services.AI;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.Logging.Abstractions;
 

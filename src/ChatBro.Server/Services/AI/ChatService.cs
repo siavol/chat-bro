@@ -1,6 +1,4 @@
-using Microsoft.Agents.AI;
-
-namespace ChatBro.Server.Services
+namespace ChatBro.Server.Services.AI
 {
     public class ChatService(
         IAIAgentProvider agentProvider,

@@ -1,10 +1,7 @@
-using System.Collections.Generic;
-using System.Threading;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 public sealed class DomainToolingBuilder(
     IAIAgentProvider agentProvider,

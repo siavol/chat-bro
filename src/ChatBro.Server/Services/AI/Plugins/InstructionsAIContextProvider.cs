@@ -1,8 +1,7 @@
 using System.Text.Json;
-using ChatBro.Server.Services;
 using Microsoft.Agents.AI;
 
-namespace ChatBro.Server.Plugins;
+namespace ChatBro.Server.Services.AI.Plugins;
 
 public sealed class FileBackedAIContextProvider : AIContextProvider
 {

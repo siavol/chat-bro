@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ChatBro.Server.Options;
-using ChatBro.Server.Plugins;
 using ChatBro.RestaurantsService.KernelFunction;
+using ChatBro.Server.Services.AI.Plugins;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenAI;
 
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 #pragma warning disable MEAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 

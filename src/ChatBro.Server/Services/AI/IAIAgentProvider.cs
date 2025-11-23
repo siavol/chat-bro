@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using System.Threading;
 using Microsoft.Agents.AI;
 
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 public interface IAIAgentProvider
 {

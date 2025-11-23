@@ -1,6 +1,7 @@
 using ChatBro.Server.Options;
-using ChatBro.Server.Plugins;
 using ChatBro.Server.Services;
+using ChatBro.Server.Services.AI;
+using ChatBro.Server.Services.AI.Plugins;
 
 namespace ChatBro.Server.DependencyInjection;
 

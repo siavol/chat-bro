@@ -1,3 +1,5 @@
+using ChatBro.Server.Services.AI;
+
 namespace ChatBro.Server.Services.Telegram;
 
 public class ResetCommand(ILogger<ResetCommand> logger) : ITelegramCommand

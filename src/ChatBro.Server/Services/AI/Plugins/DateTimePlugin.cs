@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace ChatBro.Server.Plugins;
+namespace ChatBro.Server.Services.AI.Plugins;
 
 public static class DateTimePlugin
 {

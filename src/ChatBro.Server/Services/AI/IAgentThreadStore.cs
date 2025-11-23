@@ -1,6 +1,6 @@
 using Microsoft.Agents.AI;
 
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 public interface IAgentThreadStore
 {

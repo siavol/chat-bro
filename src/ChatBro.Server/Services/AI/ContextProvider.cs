@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Options;
 using ChatBro.Server.Options;
+using Microsoft.Extensions.Options;
 
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 public interface IContextProvider
 {

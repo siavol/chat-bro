@@ -1,6 +1,4 @@
-using System.Threading;
-
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 public interface IDomainToolingBuilder
 {
