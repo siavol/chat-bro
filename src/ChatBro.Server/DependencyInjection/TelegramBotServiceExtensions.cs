@@ -16,7 +16,9 @@ public static class TelegramBotServiceExtensions
             .ValidateOnStart();
 
         builder.Services.AddSingleton(new ActivitySource(ActivitySourceName));
-        builder.Services.AddSingleton<MessageSplitter>();
+        builder.Services
+            .AddSingleton<MessageSplitter>()
+            .AddTransient<ITelegramCommand, ResetCommand>();
         builder.Services.AddHostedService<TelegramBotHostedService>();
 
         builder.Services.AddOpenTelemetry().WithTracing(tracing =>
