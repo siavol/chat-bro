@@ -68,11 +68,10 @@ public sealed class TelegramBotHostedService(
         try
         {
             var userId = message.Chat.Id.ToString();
-            var trimmedMessage = message.Text.Trim();
             using var scope = scopeFactory.CreateScope();
 
             string replyText;
-            var command = telegramCommands.FirstOrDefault(command => command.IsCommandMessage(trimmedMessage));
+            var command = telegramCommands.FirstOrDefault(command => command.IsCommandMessage(message.Text));
             if (command != null)
             {
                 using var cmdActivity = activitySource.StartActivity(ActivityKind.Internal, name: $"Telegram command {command.Command}");
