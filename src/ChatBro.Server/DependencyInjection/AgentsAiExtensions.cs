@@ -27,7 +27,7 @@ public static class AgentsAiExtensions
         appBuilder.Services
             .AddTransient<IContextProvider, ContextProvider>()
             .AddSingleton<IAgentThreadStore, InMemoryAgentThreadStore>()
-            .AddTransient<InstructionsAIContextProvider>();
+            .AddSingleton<IDomainToolingBuilder, DomainToolingBuilder>();
 
         // Register MCP client for Paperless
         appBuilder.Services.AddSingleton<PaperlessMcpClient>();

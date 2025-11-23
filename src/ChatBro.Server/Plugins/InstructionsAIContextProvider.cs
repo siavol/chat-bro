@@ -4,28 +4,39 @@ using Microsoft.Agents.AI;
 
 namespace ChatBro.Server.Plugins;
 
-public class InstructionsAIContextProvider(IContextProvider contextProvider, ILogger<InstructionsAIContextProvider> logger) : AIContextProvider
+public sealed class FileBackedAIContextProvider : AIContextProvider
 {
+    private readonly IContextProvider _contextProvider;
+    private readonly ILogger<FileBackedAIContextProvider> _logger;
+    private readonly string _instructionsPath;
+
+    public FileBackedAIContextProvider(
+        IContextProvider contextProvider,
+        ILogger<FileBackedAIContextProvider> logger,
+        string instructionsPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(instructionsPath);
+        _contextProvider = contextProvider;
+        _logger = logger;
+        _instructionsPath = instructionsPath;
+    }
+
     public override async ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
     {
         try
         {
-            var instructions = await contextProvider.GetSystemContextAsync();
+            var instructions = await _contextProvider.GetSystemContextAsync(_instructionsPath);
             if (string.IsNullOrWhiteSpace(instructions))
             {
-                logger.LogWarning("System instructions are empty.");
+                _logger.LogWarning("System instructions at {InstructionPath} are empty.", _instructionsPath);
                 return new AIContext();
             }
 
-            var aiContext = new AIContext()
-            {
-                Instructions = instructions
-            };
-            return aiContext;
+            return new AIContext { Instructions = instructions };
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to load system instructions from IContextProvider");
+            _logger.LogError(ex, "Failed to load system instructions from {InstructionPath}", _instructionsPath);
             throw;
         }
     }
@@ -33,9 +44,9 @@ public class InstructionsAIContextProvider(IContextProvider contextProvider, ILo
     public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
     {
         // Thread serialization throws exception when context serialization is not defined.
-        return JsonSerializer.SerializeToElement(new InternalState(), jsonSerializerOptions);
+        return JsonSerializer.SerializeToElement(new InternalState(_instructionsPath), jsonSerializerOptions);
     }
 
-    internal record InternalState();
+    internal record InternalState(string InstructionsPath);
 }
 

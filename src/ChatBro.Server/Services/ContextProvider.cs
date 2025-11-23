@@ -5,7 +5,7 @@ namespace ChatBro.Server.Services;
 
 public interface IContextProvider
 {
-    Task<string> GetSystemContextAsync();
+    Task<string> GetSystemContextAsync(string relativePath);
 }
 
 public class ContextProvider : IContextProvider
@@ -17,9 +17,11 @@ public class ContextProvider : IContextProvider
         _settings = settings.Value;
     }
 
-    public async Task<string> GetSystemContextAsync()
+    public async Task<string> GetSystemContextAsync(string relativePath)
     {
-        var filePath = _settings.Context.Shared;
+        var filePath = string.IsNullOrWhiteSpace(relativePath)
+            ? _settings.Context.Shared
+            : relativePath;
         if (!Path.IsPathRooted(filePath))
         {
             filePath = Path.Combine(AppContext.BaseDirectory, filePath);

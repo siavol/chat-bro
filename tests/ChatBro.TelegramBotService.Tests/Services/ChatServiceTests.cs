@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using ChatBro.Server.Services;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,7 +12,8 @@ public class ChatServiceTests
     public async Task ResetChatAsync_WhenStoreDeletes_ReturnsTrue()
     {
         var threadStore = new FakeThreadStore(true);
-        var service = new ChatService(new FakeAgentProvider(), threadStore, NullLogger<ChatService>.Instance);
+        var domainBuilder = new FakeDomainToolingBuilder();
+        var service = new ChatService(new FakeAgentProvider(), threadStore, domainBuilder, NullLogger<ChatService>.Instance);
 
         var result = await service.ResetChatAsync("user-1");
 
@@ -22,7 +25,8 @@ public class ChatServiceTests
     public async Task ResetChatAsync_WhenStoreHasNoHistory_ReturnsFalse()
     {
         var threadStore = new FakeThreadStore(false);
-        var service = new ChatService(new FakeAgentProvider(), threadStore, NullLogger<ChatService>.Instance);
+        var domainBuilder = new FakeDomainToolingBuilder();
+        var service = new ChatService(new FakeAgentProvider(), threadStore, domainBuilder, NullLogger<ChatService>.Instance);
 
         var result = await service.ResetChatAsync("user-2");
 
@@ -32,9 +36,22 @@ public class ChatServiceTests
 
     private sealed class FakeAgentProvider : IAIAgentProvider
     {
-        public Task<AIAgent> GetAgentAsync()
+        public Task<AIAgent> GetAgentAsync() => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<DomainAgentRegistration>> GetDomainAgentsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<DomainAgentRegistration>>(Array.Empty<DomainAgentRegistration>());
+    }
+
+    private sealed class FakeDomainToolingBuilder : IDomainToolingBuilder
+    {
+        public Task<DomainTooling> CreateAsync(string userId, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
+        }
+
+        public Task<bool> ResetAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
         }
     }
 
