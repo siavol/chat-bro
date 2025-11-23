@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using ChatBro.ServiceDefaults;
 using Microsoft.Extensions.Options;
