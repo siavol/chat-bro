@@ -65,24 +65,25 @@ public sealed class TelegramBotHostedService(
             return;
         }
 
-        var userId = message.Chat.Id.ToString();
-        var trimmedMessage = message.Text.Trim();
-        if (IsResetCommand(trimmedMessage))
-        {
-            await HandleResetCommandAsync(botClient, message.Chat, userId, cancellationToken);
-            return;
-        }
-
         try
         {
+            var userId = message.Chat.Id.ToString();
+            var trimmedMessage = message.Text.Trim();
+            using var scope = scopeFactory.CreateScope();
+            
             string replyText;
-            using (var scope = scopeFactory.CreateScope())
+            if (IsResetCommand(trimmedMessage))
+            {
+                replyText = await HandleResetCommandAsync(scope, botClient, message.Chat, userId, cancellationToken);
+            }
+            else 
             {
                 var chatService = scope.ServiceProvider.GetRequiredService<ChatService>();
                 replyText = await chatService.GetChatResponseAsync(message.Text, userId);
+
+                logger.LogInformation("AI generated response, length {Length}", replyText.Length);
             }
 
-            logger.LogInformation("AI generated response, length {Length}", replyText.Length);
             foreach (var replyMessage in splitter.SplitSmart(replyText))
             {
                 logger.LogInformation("Sending response to telegram");
@@ -91,7 +92,6 @@ public sealed class TelegramBotHostedService(
                     replyMessage,
                     cancellationToken: cancellationToken);
             }
-
             logger.LogInformation("Sent full response to telegram");
         }
         catch (ApiRequestException e)
@@ -113,19 +113,14 @@ public sealed class TelegramBotHostedService(
     private static bool IsResetCommand(string messageText) =>
         messageText.StartsWith("/reset", StringComparison.OrdinalIgnoreCase);
 
-    private async Task HandleResetCommandAsync(ITelegramBotClient botClient, Chat chat, string userId, CancellationToken cancellationToken)
+    private async Task<string> HandleResetCommandAsync(IServiceScope scope, ITelegramBotClient botClient, Chat chat, string userId, CancellationToken cancellationToken)
     {
         try
         {
-            using var scope = scopeFactory.CreateScope();
             var chatService = scope.ServiceProvider.GetRequiredService<ChatService>();
-            var historyCleared = await chatService.ResetChatAsync(userId);
-            var reply = historyCleared
-                ? "Your AI chat history has been cleared."
-                : "There was no stored AI chat history, you are already starting fresh.";
-
-            await botClient.SendMessage(chat, reply, cancellationToken: cancellationToken);
-            logger.LogInformation("Reset command handled for user {UserId}, cleared={Cleared}", userId, historyCleared);
+            await chatService.ResetChatAsync(userId);
+            var reply = "🧹✅";
+            return reply;
         }
         catch (Exception ex)
         {
@@ -165,15 +160,8 @@ public sealed class TelegramBotHostedService(
             }
         };
 
-        try
-        {
-            await _telegramBotClient.SetMyCommands(commands, cancellationToken: cancellationToken);
-            logger.LogInformation("Registered Telegram bot commands");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to register Telegram bot commands");
-        }
+        await _telegramBotClient.SetMyCommands(commands, cancellationToken: cancellationToken);
+        logger.LogInformation("Registered Telegram bot commands");
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
