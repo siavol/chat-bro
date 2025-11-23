@@ -11,7 +11,7 @@ public class ResetCommand(ILogger<ResetCommand> logger) : ITelegramCommand
     public async Task<string> ExecuteAsync(IServiceScope scope, string userId)
     {
         var chatService = scope.ServiceProvider.GetRequiredService<ChatService>();
-        logger.LogInformation("Reseting chat history for user {UserId}", userId);
+        logger.LogInformation("Resetting chat history for user {UserId}", userId);
         await chatService.ResetChatAsync(userId);
         return "🧹✅";
 
