@@ -13,6 +13,7 @@ public sealed class TelegramBotHostedService(
     IOptions<TelegramServiceOptions> options,
     IServiceScopeFactory scopeFactory,
     MessageSplitter splitter,
+    IEnumerable<ITelegramCommand> telegramCommands,
     ILogger<TelegramBotHostedService> logger,
     ActivitySource activitySource)
     : IHostedService, IDisposable
@@ -21,7 +22,7 @@ public sealed class TelegramBotHostedService(
     private TelegramBotClient? _telegramBotClient;
     private CancellationTokenSource? _receiverCts;
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         _telegramBotClient = new TelegramBotClient(_telegramOptions.Token);
         _receiverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -37,8 +38,9 @@ public sealed class TelegramBotHostedService(
             receiverOptions,
             _receiverCts.Token);
 
+        await RegisterCommandsAsync(cancellationToken);
+
         logger.LogInformation("Telegram bot polling started.");
-        return Task.CompletedTask;
     }
 
     private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -48,7 +50,7 @@ public sealed class TelegramBotHostedService(
             return;
         }
 
-        using var activity = activitySource.StartActivity(ActivityKind.Consumer);
+        using var activity = activitySource.StartActivity(ActivityKind.Consumer, name: "Telegram Message Received");
         activity?.SetTag("telegram.message.from", message.From?.ToString());
         activity?.SetTag("telegram.message.chat-id", message.Chat.Id);
         logger.LogInformation("Received message from {From} in chat {ChatId}", message.From, message.Chat.Id);
@@ -66,23 +68,26 @@ public sealed class TelegramBotHostedService(
         try
         {
             var userId = message.Chat.Id.ToString();
+            using var scope = scopeFactory.CreateScope();
+
             string replyText;
-            using (var scope = scopeFactory.CreateScope())
+            var command = telegramCommands.FirstOrDefault(command => command.IsCommandMessage(message.Text));
+            if (command != null)
+            {
+                using var cmdActivity = activitySource.StartActivity(ActivityKind.Internal, name: $"Telegram command {command.Command}");
+                cmdActivity?.SetTag("telegram.message.command", command.Command);
+                logger.LogInformation("Executing command {Command} for user {UserId}", command.Command, userId);
+                replyText = await command.ExecuteAsync(scope, userId);
+            }
+            else
             {
                 var chatService = scope.ServiceProvider.GetRequiredService<ChatService>();
                 replyText = await chatService.GetChatResponseAsync(message.Text, userId);
+
+                logger.LogInformation("AI generated response, length {Length}", replyText.Length);
             }
 
-            logger.LogInformation("AI generated response, length {Length}", replyText.Length);
-            foreach (var replyMessage in splitter.SplitSmart(replyText))
-            {
-                logger.LogInformation("Sending response to telegram");
-                await botClient.SendMessage(
-                    message.Chat,
-                    replyMessage,
-                    cancellationToken: cancellationToken);
-            }
-
+            await ReplyToChat(replyText, message.Chat, botClient, cancellationToken);
             logger.LogInformation("Sent full response to telegram");
         }
         catch (ApiRequestException e)
@@ -101,6 +106,18 @@ public sealed class TelegramBotHostedService(
         }
     }
 
+    private async Task ReplyToChat(string replyText, Chat chat, ITelegramBotClient botClient, CancellationToken cancellationToken)
+    {
+        foreach (var replyMessage in splitter.SplitSmart(replyText))
+        {
+            logger.LogInformation("Sending response to telegram");
+            await botClient.SendMessage(
+                chat,
+                replyMessage,
+                cancellationToken: cancellationToken);
+        }
+    }
+
     private async Task SendErrorMessageAsync(ITelegramBotClient botClient, Chat chat, Exception exception, CancellationToken cancellationToken)
     {
         await botClient.SendMessage(
@@ -113,6 +130,25 @@ public sealed class TelegramBotHostedService(
     {
         logger.LogError(exception, "Telegram polling failed");
         return Task.CompletedTask;
+    }
+
+    private async Task RegisterCommandsAsync(CancellationToken cancellationToken)
+    {
+        if (_telegramBotClient is null)
+        {
+            throw new InvalidOperationException("Telegram bot client is not started.");
+        }
+
+        var commands = telegramCommands
+            .Select(cmd => new BotCommand
+            {
+                Command = cmd.Command,
+                Description = cmd.Description
+            })
+            .ToArray();
+
+        await _telegramBotClient.SetMyCommands(commands, cancellationToken: cancellationToken);
+        logger.LogInformation("Registered {CommandCount} Telegram bot commands", commands.Length);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
