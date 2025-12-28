@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 
 namespace ChatBro.Server.Services.AI.Plugins;
 
@@ -15,6 +16,7 @@ public sealed class FileBackedAIContextProvider : AIContextProvider
         string instructionsPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(instructionsPath);
+        
         _contextProvider = contextProvider;
         _logger = logger;
         _instructionsPath = instructionsPath;
@@ -31,7 +33,10 @@ public sealed class FileBackedAIContextProvider : AIContextProvider
                 return new AIContext();
             }
 
-            return new AIContext { Instructions = instructions };
+            return new AIContext
+            {
+                Messages = [ new ChatMessage(ChatRole.System, instructions) ]
+            };
         }
         catch (Exception ex)
         {

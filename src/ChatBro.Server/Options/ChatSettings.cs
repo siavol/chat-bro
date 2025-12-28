@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ChatBro.Server.Options;
 
 public class ChatSettings

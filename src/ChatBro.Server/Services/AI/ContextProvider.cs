@@ -1,32 +1,25 @@
-using ChatBro.Server.Options;
-using Microsoft.Extensions.Options;
-
 namespace ChatBro.Server.Services.AI;
 
 public interface IContextProvider
 {
-    Task<string> GetSystemContextAsync(string relativePath);
+    Task<string> GetSystemContextAsync(string contextPath);
 }
 
 public class ContextProvider : IContextProvider
 {
-    private readonly ChatSettings _settings;
+    // private readonly ChatSettings _settings;
 
-    public ContextProvider(IOptions<ChatSettings> settings)
+    public ContextProvider()
     {
-        _settings = settings.Value;
+        //_settings = settings.Value;
     }
 
-    public async Task<string> GetSystemContextAsync(string relativePath)
+    public async Task<string> GetSystemContextAsync(string contextPath)
     {
-        var filePath = string.IsNullOrWhiteSpace(relativePath)
-            ? _settings.Context.Shared
-            : relativePath;
-        if (!Path.IsPathRooted(filePath))
-        {
-            filePath = Path.Combine(AppContext.BaseDirectory, filePath);
-        }
-
+        ArgumentException.ThrowIfNullOrWhiteSpace(contextPath);
+        string? filePath = Path.IsPathRooted(contextPath) 
+            ? contextPath 
+            : Path.Combine(AppContext.BaseDirectory, contextPath);
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"Context file not found: {filePath}");
