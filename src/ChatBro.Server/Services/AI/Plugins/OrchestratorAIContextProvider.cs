@@ -48,28 +48,19 @@ public sealed class OrchestratorAIContextProvider(
 
         foreach (var domain in domainSettings)
         {
-            try
+            var descriptionPath = Path.Combine(ContextsFolder, DomainsFolder, domain.Key, DomainDescriptionFilename);
+            logger.LogDebug("Loading domain description for {DomainKey} from {DescriptionPath}", domain.Key, descriptionPath);
+            
+            var description = await GetSystemContextAsync(descriptionPath, cancellationToken);
+            if (string.IsNullOrWhiteSpace(description))
             {
-                var descriptionPath = Path.Combine(ContextsFolder, DomainsFolder, domain.Key, DomainDescriptionFilename);
-                logger.LogDebug("Loading domain description for {DomainKey} from {DescriptionPath}", domain.Key, descriptionPath);
-                
-                var description = await GetSystemContextAsync(descriptionPath, cancellationToken);
-                
-                if (!string.IsNullOrWhiteSpace(description))
-                {
-                    descriptionsBuilder.AppendLine($"## {domain.ToolName}");
-                    descriptionsBuilder.AppendLine(description.Trim());
-                    descriptionsBuilder.AppendLine();
-                }
-                else
-                {
-                    logger.LogWarning("Domain description for {DomainKey} at {DescriptionPath} is empty.", domain.Key, descriptionPath);
-                }
+                logger.LogError("Domain description for {DomainKey} at {DescriptionPath} is empty.", domain.Key, descriptionPath);
+                throw new InvalidOperationException($"Domain {domain.Key} description is empty.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to load domain description for {DomainKey}", domain.Key);
-            }
+            
+            descriptionsBuilder.AppendLine($"## {domain.ToolName}");
+            descriptionsBuilder.AppendLine(description.Trim());
+            descriptionsBuilder.AppendLine();
         }
 
         return descriptionsBuilder.ToString();
