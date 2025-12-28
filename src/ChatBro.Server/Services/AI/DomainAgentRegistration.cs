@@ -16,9 +16,9 @@ public sealed record DomainAgentRegistration(
         DomainSettings settings,
         AIAgent agent)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(settings.Key);
-        ArgumentException.ThrowIfNullOrWhiteSpace(settings.ToolName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(settings.Description);
+        ArgumentException.ThrowIfNullOrWhiteSpace(settings.Key, nameof(settings.Key));
+        ArgumentException.ThrowIfNullOrWhiteSpace(settings.ToolName, nameof(settings.ToolName));
+        ArgumentException.ThrowIfNullOrWhiteSpace(settings.Description, nameof(settings.Description));
 
         return new DomainAgentRegistration(settings.Key, settings.ToolName, settings.Description, agent);
     }
