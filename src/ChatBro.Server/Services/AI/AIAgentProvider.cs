@@ -180,7 +180,7 @@ public sealed class AIAgentProvider(
         => ActivatorUtilities.CreateInstance<DomainAgentAIContextProvider>(_serviceProvider, agentKey);
     
     private OrchestratorAIContextProvider CreateOrchestratorContextProvider()
-        => ActivatorUtilities.CreateInstance<OrchestratorAIContextProvider>(_serviceProvider);
+        => ActivatorUtilities.CreateInstance<OrchestratorAIContextProvider>(_serviceProvider, _chatSettings.Domains.All());
 
     public void Dispose()
     {
