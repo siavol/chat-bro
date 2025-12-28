@@ -32,7 +32,6 @@ public sealed class AIAgentProvider(
 
     public async Task<IReadOnlyList<DomainAgentRegistration>> GetDomainAgentsAsync(CancellationToken cancellationToken = default)
     {
-        _ = cancellationToken;
         await EnsureInitializedAsync();
         return _domainAgents!;
     }
