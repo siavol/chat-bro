@@ -4,22 +4,15 @@ public class ChatSettings
 {
     public required string AiModel { get; init; }
 
-    public ChatContextSettings Context { get; init; } = new ChatContextSettings();
-
     public ChatHistorySettings History { get; init; } = new ChatHistorySettings();
 
     public OrchestratorSettings Orchestrator { get; init; } = new OrchestratorSettings();
 
     public DomainCollectionSettings Domains { get; init; } = new DomainCollectionSettings();
 
-    public class ChatContextSettings
-    {
-        public string Shared { get; init; } = "contexts/shared.md";
-    }
-
     public class OrchestratorSettings
     {
-        public string Name { get; init; } = "ChatBro Orchestrator";
+        public string Key => "orchestrator";
 
         public string Description { get; init; } = "Routes user messages to the most relevant domain chat.";
     }

@@ -121,7 +121,7 @@ public sealed class AIAgentProvider(
         return CreateAgent(
             "OrchestratorAgent",
             orchestrator.Description,
-            "orchestrator",
+            orchestrator.Key,
             tools,
             contextProviderFactory: () => CreateOrchestratorContextProvider());
     }
