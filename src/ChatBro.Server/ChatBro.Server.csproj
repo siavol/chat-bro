@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Aspire.OpenAI" Version="13.0.0-preview.1.25560.3" />
-    <PackageReference Include="Aspire.StackExchange.Redis" Version="13.0.0" />
+    <PackageReference Include="Aspire.OpenAI" Version="13.1.0-preview.1.25616.3" />
+    <PackageReference Include="Aspire.StackExchange.Redis" Version="13.1.0" />
     <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-preview.251016.1" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251016.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
