@@ -19,11 +19,6 @@ public sealed class AIAgentProvider(
     ILogger<AIAgentProvider> logger) : IAIAgentProvider, IDisposable
 {
     private readonly ChatSettings _chatSettings = chatSettings.Value;
-    private readonly OpenAIClient _openAiClient = openAiClient;
-    private readonly FunctionMiddleware _functionMiddleware = functionMiddleware;
-    private readonly PaperlessMcpClient _paperlessMcpClient = paperlessMcpClient;
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
-    private readonly ILogger<AIAgentProvider> _logger = logger;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
     private AIAgent? _orchestratorAgent;
@@ -57,14 +52,10 @@ public sealed class AIAgentProvider(
                 return;
             }
 
-            _logger.LogInformation("Building orchestrator and domain agents");
-            var domainAgents = await BuildDomainAgentsAsync();
-            _domainAgents = domainAgents;
+            logger.LogInformation("Building orchestrator and domain agents");
+            _domainAgents = await BuildDomainAgentsAsync();
             _orchestratorAgent = BuildOrchestratorAgent();
-
-            _logger.LogInformation(
-                "Constructed orchestrator agent plus {Count} domain agents",
-                domainAgents.Count);
+            logger.LogInformation("Constructed orchestrator agent plus {Count} domain agents", _domainAgents.Count);
         }
         finally
         {
@@ -107,7 +98,7 @@ public sealed class AIAgentProvider(
     private async Task<DomainAgentRegistration> BuildDocumentsDomainAgentAsync()
     {
         var domainSettings = _chatSettings.Domains.Documents;
-        var tools = await _paperlessMcpClient.GetToolsAsync();
+        var tools = await paperlessMcpClient.GetToolsAsync();
 
         var agent = CreateAgent(
             name: "DocumentsAgent",
@@ -165,11 +156,11 @@ public sealed class AIAgentProvider(
                 InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded)
         };
 
-        return _openAiClient
+        return openAiClient
             .GetChatClient(_chatSettings.AiModel)
-            .CreateAIAgent(options, services: _serviceProvider)
+            .CreateAIAgent(options, services: serviceProvider)
             .AsBuilder()
-            .Use(_functionMiddleware.CustomFunctionCallingMiddleware)
+            .Use(functionMiddleware.CustomFunctionCallingMiddleware)
             .UseOpenTelemetry(
                 sourceName: telemetrySource,
                 configure: cfg => cfg.EnableSensitiveData = true)
@@ -177,10 +168,10 @@ public sealed class AIAgentProvider(
     }
 
     private DomainAgentAIContextProvider CreateDomainAgentContextProvider(string agentKey)
-        => ActivatorUtilities.CreateInstance<DomainAgentAIContextProvider>(_serviceProvider, agentKey);
+        => ActivatorUtilities.CreateInstance<DomainAgentAIContextProvider>(serviceProvider, agentKey);
     
     private OrchestratorAIContextProvider CreateOrchestratorContextProvider()
-        => ActivatorUtilities.CreateInstance<OrchestratorAIContextProvider>(_serviceProvider, _chatSettings.Domains.All());
+        => ActivatorUtilities.CreateInstance<OrchestratorAIContextProvider>(serviceProvider, _chatSettings.Domains.All());
 
     public void Dispose()
     {
