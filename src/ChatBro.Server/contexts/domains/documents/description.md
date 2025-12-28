@@ -1,1 +1,1 @@
-Talk to the Documents domain to search, summarize, or update the user's Paperless-NGX archive.
+Searches and manages the user's Paperless-NGX documents. Can find, summarize, and organize documents.
