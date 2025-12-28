@@ -95,8 +95,9 @@ public sealed class AIAgentProvider(
         var agent = CreateAgent(
             name: "RestaurantsAgent",
             description: domainSettings.Description,
-            instructionsPath: domainSettings.Instructions,
-            tools: tools);
+            agentKey: domainSettings.Key,
+            tools: tools,
+            contextProviderFactory: () => CreateDomainAgentContextProvider(domainSettings.Key));
 
         var registration = DomainAgentRegistration.Create(domainSettings, agent);
 
@@ -111,8 +112,9 @@ public sealed class AIAgentProvider(
         var agent = CreateAgent(
             name: "DocumentsAgent",
             description: domainSettings.Description,
-            instructionsPath: domainSettings.Instructions,
-            tools: tools);
+            agentKey: domainSettings.Key,
+            tools: tools,
+            contextProviderFactory: () => CreateDomainAgentContextProvider(domainSettings.Key));
 
         return DomainAgentRegistration.Create(domainSettings, agent);
     }
@@ -129,18 +131,20 @@ public sealed class AIAgentProvider(
             "OrchestratorAgent",
             orchestrator.Description,
             orchestrator.Instructions,
-            tools);
+            tools,
+            contextProviderFactory: () => CreateOrchestratorContextProvider());
     }
 
     private AIAgent CreateAgent(
         string name,
         string description,
-        string instructionsPath,
-        IEnumerable<AITool> tools)
+        string agentKey,
+        IEnumerable<AITool> tools,
+        Func<AIContextProvider> contextProviderFactory)
     {
-        if (string.IsNullOrWhiteSpace(instructionsPath))
+        if (string.IsNullOrWhiteSpace(agentKey))
         {
-            throw new InvalidOperationException($"Instructions path is not configured for agent {name}.");
+            throw new InvalidOperationException($"Agent key is not configured for agent {name}.");
         }
 
         var telemetrySource = $"ChatBro.Server.Agent.{name}";
@@ -149,7 +153,7 @@ public sealed class AIAgentProvider(
         {
             Name = name,
             Description = description,
-            AIContextProviderFactory = _ => CreateContextProvider(instructionsPath),
+            AIContextProviderFactory = _ => contextProviderFactory(),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
@@ -172,8 +176,11 @@ public sealed class AIAgentProvider(
             .Build();
     }
 
-    private FileBackedAIContextProvider CreateContextProvider(string instructionsPath)
-        => ActivatorUtilities.CreateInstance<FileBackedAIContextProvider>(_serviceProvider, instructionsPath);
+    private DomainAgentAIContextProvider CreateDomainAgentContextProvider(string agentKey)
+        => ActivatorUtilities.CreateInstance<DomainAgentAIContextProvider>(_serviceProvider, agentKey);
+    
+    private OrchestratorAIContextProvider CreateOrchestratorContextProvider()
+        => ActivatorUtilities.CreateInstance<OrchestratorAIContextProvider>(_serviceProvider);
 
     public void Dispose()
     {

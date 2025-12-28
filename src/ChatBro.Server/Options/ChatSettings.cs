@@ -32,16 +32,14 @@ public class ChatSettings
         {
             Key = "restaurants",
             ToolName = "restaurants_chat",
-            Description = "Handles restaurant discovery and lunch planning.",
-            Instructions = "contexts/domains/restaurants.md"
+            Description = "Handles restaurant discovery and lunch planning."
         };
 
         public DomainSettings Documents { get; init; } = new DomainSettings
         {
             Key = "documents",
             ToolName = "documents_chat",
-            Description = "Looks up and files Paperless documents.",
-            Instructions = "contexts/domains/documents.md"
+            Description = "Looks up and files Paperless documents."
         };
 
         public IEnumerable<DomainSettings> All()
@@ -58,8 +56,6 @@ public class ChatSettings
         public string ToolName { get; init; } = string.Empty;
 
         public string Description { get; init; } = string.Empty;
-
-        public string Instructions { get; init; } = string.Empty;
     }
 }
 
