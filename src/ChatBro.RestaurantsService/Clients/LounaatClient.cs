@@ -13,7 +13,7 @@ namespace ChatBro.RestaurantsService.Clients
 
         private static readonly TimeSpan DefaultTtl = TimeSpan.FromDays(1);
 
-        public async Task<IList<Restaurant>> GetRestaurants(DateOnly date, bool ignoreCache = false)
+        public async Task<IList<Restaurant>> GetRestaurants(DateOnly date, double latitude, double longitude, bool ignoreCache = false)
         {
             var cacheKey = new LounaatCacheKey(date);
             if (!ignoreCache 
@@ -25,7 +25,7 @@ namespace ChatBro.RestaurantsService.Clients
             }
 
             logger.LogInformation("Get restaurants from site for date {Date}", date);
-            var html = await scrapper.Scrape(date);
+            var html = await scrapper.Scrape(date, latitude, longitude);
             var restaurants = parser.Parse(html);
             logger.LogDebug("Found {Count} restaurants", restaurants.Count);
 
