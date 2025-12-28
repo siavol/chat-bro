@@ -22,8 +22,6 @@ public class ChatSettings
         public string Name { get; init; } = "ChatBro Orchestrator";
 
         public string Description { get; init; } = "Routes user messages to the most relevant domain chat.";
-
-        public string Instructions { get; init; } = "contexts/orchestrator.md";
     }
 
     public class DomainCollectionSettings
