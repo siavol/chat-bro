@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using ChatBro.Server.Options;
 using ChatBro.RestaurantsService.KernelFunction;
 using ChatBro.Server.Services.AI.Plugins;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenAI;
 
@@ -97,17 +93,12 @@ public sealed class AIAgentProvider(
         };
 
         var agent = CreateAgent(
-            name: "ChatBro.RestaurantsAgent",
-            description: "Handles restaurant discovery and lunch planning.",
+            name: "RestaurantsAgent",
+            description: domainSettings.Description,
             instructionsPath: domainSettings.Instructions,
-            tools: tools,
-            telemetrySource: "ChatBro.Server.Agent.Restaurants");
+            tools: tools);
 
-        var registration = CreateRegistration(
-            domainSettings,
-            defaultKey: "restaurants",
-            defaultToolName: "restaurants_chat",
-            agent);
+        var registration = DomainAgentRegistration.Create(domainSettings, agent);
 
         return Task.FromResult(registration);
     }
@@ -118,32 +109,12 @@ public sealed class AIAgentProvider(
         var tools = await _paperlessMcpClient.GetToolsAsync();
 
         var agent = CreateAgent(
-            name: "ChatBro.DocumentsAgent",
-            description: "Looks up and files Paperless documents.",
+            name: "DocumentsAgent",
+            description: domainSettings.Description,
             instructionsPath: domainSettings.Instructions,
-            tools: tools,
-            telemetrySource: "ChatBro.Server.Agent.Documents");
+            tools: tools);
 
-        return CreateRegistration(
-            domainSettings,
-            defaultKey: "documents",
-            defaultToolName: "documents_chat",
-            agent);
-    }
-
-    private DomainAgentRegistration CreateRegistration(
-        ChatSettings.DomainSettings settings,
-        string defaultKey,
-        string defaultToolName,
-        AIAgent agent)
-    {
-        var key = string.IsNullOrWhiteSpace(settings.Key) ? defaultKey : settings.Key;
-        var toolName = string.IsNullOrWhiteSpace(settings.ToolName) ? defaultToolName : settings.ToolName;
-        var description = string.IsNullOrWhiteSpace(settings.Description)
-            ? $"Routes conversations to {agent.Name}."
-            : settings.Description;
-
-        return new DomainAgentRegistration(key, toolName, description, agent);
+        return DomainAgentRegistration.Create(domainSettings, agent);
     }
 
     private AIAgent BuildOrchestratorAgent()
@@ -154,32 +125,25 @@ public sealed class AIAgentProvider(
             AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
         };
 
-        var name = string.IsNullOrWhiteSpace(orchestrator.Name)
-            ? "ChatBro Orchestrator"
-            : orchestrator.Name;
-        var description = string.IsNullOrWhiteSpace(orchestrator.Description)
-            ? "Routes user questions to the best domain expert."
-            : orchestrator.Description;
-
         return CreateAgent(
-            name,
-            description,
+            "OrchestratorAgent",
+            orchestrator.Description,
             orchestrator.Instructions,
-            tools,
-            telemetrySource: "ChatBro.Server.Agent.Orchestrator");
+            tools);
     }
 
     private AIAgent CreateAgent(
         string name,
         string description,
         string instructionsPath,
-        IEnumerable<AITool> tools,
-        string telemetrySource)
+        IEnumerable<AITool> tools)
     {
         if (string.IsNullOrWhiteSpace(instructionsPath))
         {
             throw new InvalidOperationException($"Instructions path is not configured for agent {name}.");
         }
+
+        var telemetrySource = $"ChatBro.Server.Agent.{name}";
 
         var options = new ChatClientAgentOptions
         {

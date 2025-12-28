@@ -32,7 +32,7 @@ public class ChatSettings
         {
             Key = "restaurants",
             ToolName = "restaurants_chat",
-            Description = "Specialist for nearby lunch ideas and restaurant intel.",
+            Description = "Handles restaurant discovery and lunch planning.",
             Instructions = "contexts/domains/restaurants.md"
         };
 
@@ -40,7 +40,7 @@ public class ChatSettings
         {
             Key = "documents",
             ToolName = "documents_chat",
-            Description = "Specialist for Paperless document lookup and filing.",
+            Description = "Looks up and files Paperless documents.",
             Instructions = "contexts/domains/documents.md"
         };
 
