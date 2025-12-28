@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-namespace ChatBro.Server.Plugins;
+namespace ChatBro.Server.Services.AI.Plugins;
 
 public class FunctionMiddleware(ILogger<FunctionMiddleware> logger)
 {

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ChatBro.Server.Services.AI;
 using ChatBro.ServiceDefaults;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;

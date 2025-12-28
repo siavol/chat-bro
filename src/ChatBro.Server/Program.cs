@@ -1,6 +1,6 @@
 using ChatBro.Server.DependencyInjection;
-using ChatBro.Server.Services;
 using ChatBro.RestaurantsService.KernelFunction;
+using ChatBro.Server.Services.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.Agents.AI;
 using StackExchange.Redis;
 
-namespace ChatBro.Server.Services;
+namespace ChatBro.Server.Services.AI;
 
 public class InMemoryAgentThreadStore(
     IConnectionMultiplexer redis,
