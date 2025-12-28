@@ -20,7 +20,7 @@ public sealed class OrchestratorAIContextProvider(
         try
         {
             logger.LogDebug("Loading orchestrator system instructions from {InstructionPath}", instructionsPath);
-            var baseInstructions = await GetSystemContextAsync(instructionsPath);
+            var baseInstructions = await GetSystemContextAsync(instructionsPath, cancellationToken);
             if (string.IsNullOrWhiteSpace(baseInstructions))
             {
                 logger.LogWarning("Orchestrator system instructions at {InstructionPath} are empty.", instructionsPath);
