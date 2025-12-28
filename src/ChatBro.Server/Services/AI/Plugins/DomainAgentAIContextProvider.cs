@@ -27,7 +27,7 @@ public sealed class DomainAgentAIContextProvider : FileBackedAIContextProviderBa
             var instructionsPath = Path.Combine(ContextsFolder, DomainsFolder, _agentKey, InstructionsFilename);
 
             _logger.LogDebug("Loading domain agent system instructions for {AgentKey} from {InstructionPath}", _agentKey, instructionsPath);
-            var instructions = await GetSystemContextAsync(instructionsPath);
+            var instructions = await GetSystemContextAsync(instructionsPath, cancellationToken);
             if (string.IsNullOrWhiteSpace(instructions))
             {
                 _logger.LogWarning("Domain agent system instructions for {AgentKey} at {InstructionPath} are empty.", _agentKey, instructionsPath);

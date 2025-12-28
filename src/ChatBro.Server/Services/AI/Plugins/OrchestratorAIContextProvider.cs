@@ -53,7 +53,7 @@ public sealed class OrchestratorAIContextProvider(
                 var descriptionPath = Path.Combine(ContextsFolder, DomainsFolder, domain.Key, DomainDescriptionFilename);
                 logger.LogDebug("Loading domain description for {DomainKey} from {DescriptionPath}", domain.Key, descriptionPath);
                 
-                var description = await GetSystemContextAsync(descriptionPath);
+                var description = await GetSystemContextAsync(descriptionPath, cancellationToken);
                 
                 if (!string.IsNullOrWhiteSpace(description))
                 {
