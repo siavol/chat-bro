@@ -26,7 +26,6 @@ public static class AgentsAiExtensions
             .ValidateOnStart();
         appBuilder.Services.AddSingleton<FunctionMiddleware>();
         appBuilder.Services
-            .AddTransient<IContextProvider, ContextProvider>()
             .AddSingleton<IAgentThreadStore, InMemoryAgentThreadStore>()
             .AddSingleton<IDomainToolingBuilder, DomainToolingBuilder>();
 

@@ -1,20 +1,13 @@
-namespace ChatBro.Server.Services.AI;
+using Microsoft.Agents.AI;
 
-public interface IContextProvider
+namespace ChatBro.Server.Services.AI.Plugins;
+
+public abstract class FileBackedAIContextProviderBase : AIContextProvider
 {
-    Task<string> GetSystemContextAsync(string contextPath);
-}
+    protected const string ContextsFolder = "contexts";
+    protected const string DomainsFolder = "domains";
 
-public class ContextProvider : IContextProvider
-{
-    // private readonly ChatSettings _settings;
-
-    public ContextProvider()
-    {
-        //_settings = settings.Value;
-    }
-
-    public async Task<string> GetSystemContextAsync(string contextPath)
+    protected static async Task<string> GetSystemContextAsync(string contextPath) 
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contextPath);
         string? filePath = Path.IsPathRooted(contextPath) 
@@ -29,4 +22,3 @@ public class ContextProvider : IContextProvider
         return context;
     }
 }
-

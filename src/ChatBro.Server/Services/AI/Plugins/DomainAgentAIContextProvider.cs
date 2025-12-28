@@ -4,20 +4,18 @@ using Microsoft.Extensions.AI;
 
 namespace ChatBro.Server.Services.AI.Plugins;
 
-public sealed class DomainAgentAIContextProvider : AIContextProvider
+public sealed class DomainAgentAIContextProvider : FileBackedAIContextProviderBase
 {
-    private readonly IContextProvider _contextProvider;
+    private const string InstructionsFilename = "instructions.md";
     private readonly ILogger<DomainAgentAIContextProvider> _logger;
     private readonly string _agentKey;
 
     public DomainAgentAIContextProvider(
-        IContextProvider contextProvider,
         ILogger<DomainAgentAIContextProvider> logger,
         string agentKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(agentKey);
         
-        _contextProvider = contextProvider;
         _logger = logger;
         _agentKey = agentKey;
     }
@@ -26,10 +24,10 @@ public sealed class DomainAgentAIContextProvider : AIContextProvider
     {
         try
         {
-            var instructionsPath = $"contexts/domains/{_agentKey}/instructions.md";
+            var instructionsPath = Path.Combine(ContextsFolder, DomainsFolder, _agentKey, InstructionsFilename);
 
             _logger.LogDebug("Loading domain agent system instructions for {AgentKey} from {InstructionPath}", _agentKey, instructionsPath);
-            var instructions = await _contextProvider.GetSystemContextAsync(instructionsPath);
+            var instructions = await GetSystemContextAsync(instructionsPath);
             if (string.IsNullOrWhiteSpace(instructions))
             {
                 _logger.LogWarning("Domain agent system instructions for {AgentKey} at {InstructionPath} are empty.", _agentKey, instructionsPath);

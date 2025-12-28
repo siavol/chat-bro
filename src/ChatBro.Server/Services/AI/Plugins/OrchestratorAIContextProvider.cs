@@ -7,22 +7,23 @@ using Microsoft.Extensions.AI;
 namespace ChatBro.Server.Services.AI.Plugins;
 
 public sealed class OrchestratorAIContextProvider(
-    IContextProvider contextProvider,
     ILogger<OrchestratorAIContextProvider> logger,
-    IEnumerable<ChatSettings.DomainSettings> domainSettings) : AIContextProvider
+    IEnumerable<ChatSettings.DomainSettings> domainSettings) : FileBackedAIContextProviderBase
 {
-    private const string InstructionsPath = "contexts/orchestrator.md";
+    private const string OrchestratorInstructionsFilename = "orchestrator.md";
+    private const string DomainDescriptionFilename = "description.md";
     private const string AgentDescriptionsPlaceholder = "<agent-descriptions-here>";
 
     public override async ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
     {
+        var instructionsPath = Path.Combine(ContextsFolder, OrchestratorInstructionsFilename);
         try
         {
-            logger.LogDebug("Loading orchestrator system instructions from {InstructionPath}", InstructionsPath);
-            var baseInstructions = await contextProvider.GetSystemContextAsync(InstructionsPath);
+            logger.LogDebug("Loading orchestrator system instructions from {InstructionPath}", instructionsPath);
+            var baseInstructions = await GetSystemContextAsync(instructionsPath);
             if (string.IsNullOrWhiteSpace(baseInstructions))
             {
-                logger.LogWarning("Orchestrator system instructions at {InstructionPath} are empty.", InstructionsPath);
+                logger.LogWarning("Orchestrator system instructions at {InstructionPath} are empty.", instructionsPath);
                 return new AIContext();
             }
 
@@ -36,7 +37,7 @@ public sealed class OrchestratorAIContextProvider(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to load orchestrator system instructions from {InstructionPath}", InstructionsPath);
+            logger.LogError(ex, "Failed to load orchestrator system instructions from {InstructionPath}", instructionsPath);
             throw;
         }
     }
@@ -49,10 +50,10 @@ public sealed class OrchestratorAIContextProvider(
         {
             try
             {
-                var descriptionPath = $"contexts/domains/{domain.Key}/description.md";
+                var descriptionPath = Path.Combine(ContextsFolder, DomainsFolder, domain.Key, DomainDescriptionFilename);
                 logger.LogDebug("Loading domain description for {DomainKey} from {DescriptionPath}", domain.Key, descriptionPath);
                 
-                var description = await contextProvider.GetSystemContextAsync(descriptionPath);
+                var description = await GetSystemContextAsync(descriptionPath);
                 
                 if (!string.IsNullOrWhiteSpace(description))
                 {
