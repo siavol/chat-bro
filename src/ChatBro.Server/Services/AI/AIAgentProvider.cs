@@ -82,13 +82,30 @@ public sealed class AIAgentProvider(
             AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
         };
 
-        var agent = CreateAgent(
-            name: "RestaurantsAgent",
-            description: domainSettings.Description,
-            agentKey: domainSettings.Key,
-            tools: tools,
-            contextProviderFactory: () => CreateDomainAgentContextProvider(domainSettings.Key));
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+        var contextProviderLogger = loggerFactory.CreateLogger<RestaurantsAgentAIContextProvider>();
+        
+        // little bit strange way to get IChatClient...
+        var chatClient = openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient();
 
+        var options = new ChatClientAgentOptions
+        {
+            Name = "RestaurantsAgent",
+            Description = domainSettings.Description,
+            AIContextProviderFactory = ctx => new RestaurantsAgentAIContextProvider( 
+                chatClient, contextProviderLogger, domainSettings.Key, ctx.SerializedState, ctx.JsonSerializerOptions!),
+            ChatOptions = new ChatOptions
+            {
+                Tools = tools.ToArray()
+            },
+            ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
+                new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
+                ctx.SerializedState,
+                ctx.JsonSerializerOptions,
+                InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded)
+        };
+        var agent = CreateAgent(options);
+        
         var registration = DomainAgentRegistration.Create(domainSettings, agent);
 
         return Task.FromResult(registration);
@@ -99,12 +116,22 @@ public sealed class AIAgentProvider(
         var domainSettings = _chatSettings.Domains.Documents;
         var tools = await paperlessMcpClient.GetToolsAsync();
 
-        var agent = CreateAgent(
-            name: "DocumentsAgent",
-            description: domainSettings.Description,
-            agentKey: domainSettings.Key,
-            tools: tools,
-            contextProviderFactory: () => CreateDomainAgentContextProvider(domainSettings.Key));
+        var agentOptions = new ChatClientAgentOptions
+        {
+            Name = "DocumentsAgent",
+            Description = domainSettings.Description,
+            AIContextProviderFactory = ctx => ActivatorUtilities.CreateInstance<GenericDomainAgentAIContextProvider>(serviceProvider, domainSettings.Key),
+            ChatOptions = new ChatOptions
+            {
+                Tools = tools.ToArray()
+            },
+            ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
+                new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
+                ctx.SerializedState,
+                ctx.JsonSerializerOptions,
+                InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded)
+        };
+        var agent = CreateAgent(agentOptions);
 
         return DomainAgentRegistration.Create(domainSettings, agent);
     }
@@ -117,33 +144,11 @@ public sealed class AIAgentProvider(
             AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
         };
 
-        return CreateAgent(
-            "OrchestratorAgent",
-            orchestrator.Description,
-            orchestrator.Key,
-            tools,
-            contextProviderFactory: () => CreateOrchestratorContextProvider());
-    }
-
-    private AIAgent CreateAgent(
-        string name,
-        string description,
-        string agentKey,
-        IEnumerable<AITool> tools,
-        Func<AIContextProvider> contextProviderFactory)
-    {
-        if (string.IsNullOrWhiteSpace(agentKey))
+        var agentOptions = new ChatClientAgentOptions
         {
-            throw new InvalidOperationException($"Agent key is not configured for agent {name}.");
-        }
-
-        var telemetrySource = $"ChatBro.Server.Agent.{name}";
-
-        var options = new ChatClientAgentOptions
-        {
-            Name = name,
-            Description = description,
-            AIContextProviderFactory = _ => contextProviderFactory(),
+            Name = "OrchestratorAgent",
+            Description = orchestrator.Description,
+            AIContextProviderFactory = ctx => CreateOrchestratorContextProvider(),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
@@ -155,20 +160,21 @@ public sealed class AIAgentProvider(
                 InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded)
         };
 
-        return openAiClient
+
+        return CreateAgent(agentOptions);
+    }
+
+    private AIAgent CreateAgent(ChatClientAgentOptions agentOptions) => 
+        openAiClient
             .GetChatClient(_chatSettings.AiModel)
-            .CreateAIAgent(options, services: serviceProvider)
+            .CreateAIAgent(agentOptions, services: serviceProvider)
             .AsBuilder()
             .Use(functionMiddleware.CustomFunctionCallingMiddleware)
             .UseOpenTelemetry(
-                sourceName: telemetrySource,
+                // sourceName: telemetrySource,
                 configure: cfg => cfg.EnableSensitiveData = true)
             .Build();
-    }
 
-    private DomainAgentAIContextProvider CreateDomainAgentContextProvider(string agentKey)
-        => ActivatorUtilities.CreateInstance<DomainAgentAIContextProvider>(serviceProvider, agentKey);
-    
     private OrchestratorAIContextProvider CreateOrchestratorContextProvider()
         => ActivatorUtilities.CreateInstance<OrchestratorAIContextProvider>(serviceProvider, _chatSettings.Domains.All());
 

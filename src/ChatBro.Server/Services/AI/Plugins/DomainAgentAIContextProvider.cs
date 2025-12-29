@@ -4,33 +4,31 @@ using Microsoft.Extensions.AI;
 
 namespace ChatBro.Server.Services.AI.Plugins;
 
-public sealed class DomainAgentAIContextProvider : FileBackedAIContextProviderBase
+public abstract class DomainAgentAIContextProvider : FileBackedAIContextProviderBase
 {
     private const string InstructionsFilename = "instructions.md";
-    private readonly ILogger<DomainAgentAIContextProvider> _logger;
-    private readonly string _agentKey;
+    protected ILogger Logger { get; }
+    protected string AgentKey { get; }
 
-    public DomainAgentAIContextProvider(
-        ILogger<DomainAgentAIContextProvider> logger,
-        string agentKey)
+    public DomainAgentAIContextProvider(ILogger logger, string agentKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(agentKey);
         
-        _logger = logger;
-        _agentKey = agentKey;
+        this.Logger = logger;
+        this.AgentKey = agentKey;
     }
 
     public override async ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
     {
         try
         {
-            var instructionsPath = Path.Combine(ContextsFolder, DomainsFolder, _agentKey, InstructionsFilename);
+            var instructionsPath = Path.Combine(ContextsFolder, DomainsFolder, AgentKey, InstructionsFilename);
 
-            _logger.LogDebug("Loading domain agent system instructions for {AgentKey} from {InstructionPath}", _agentKey, instructionsPath);
+            Logger.LogDebug("Loading domain agent system instructions for {AgentKey} from {InstructionPath}", AgentKey, instructionsPath);
             var instructions = await GetSystemContextAsync(instructionsPath, cancellationToken);
             if (string.IsNullOrWhiteSpace(instructions))
             {
-                _logger.LogWarning("Domain agent system instructions for {AgentKey} at {InstructionPath} are empty.", _agentKey, instructionsPath);
+                Logger.LogWarning("Domain agent system instructions for {AgentKey} at {InstructionPath} are empty.", AgentKey, instructionsPath);
                 return new AIContext();
             }
 
@@ -41,16 +39,8 @@ public sealed class DomainAgentAIContextProvider : FileBackedAIContextProviderBa
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load domain agent system instructions for {AgentKey}", _agentKey);
+            Logger.LogError(ex, "Failed to load domain agent system instructions for {AgentKey}", AgentKey);
             throw;
         }
     }
-
-    public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
-    {
-        _logger.LogDebug("Serializing domain agent AI context for AgentKey: {AgentKey}", _agentKey);
-        return JsonSerializer.SerializeToElement(new InternalState(_agentKey), jsonSerializerOptions);
-    }
-
-    internal record InternalState(string AgentKey);
 }
