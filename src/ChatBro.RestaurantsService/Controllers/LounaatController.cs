@@ -1,4 +1,5 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
 using ChatBro.RestaurantsService.Clients;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +10,10 @@ namespace ChatBro.RestaurantsService.Controllers;
 public class LounaatController(LounaatClient client) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] DateOnly? date, [FromQuery] double lat, [FromQuery] double lng)
+    public async Task<IActionResult> Get(
+        [FromQuery] DateOnly? date, 
+        [FromQuery, Required] double lat, 
+        [FromQuery, Required] double lng)
     {
         var dateToUse = date ?? DateOnly.FromDateTime(DateTime.Now);
         var restaurants = await client.GetRestaurants(dateToUse, lat, lng);
