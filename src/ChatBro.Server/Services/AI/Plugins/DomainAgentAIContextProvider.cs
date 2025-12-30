@@ -10,7 +10,7 @@ public abstract class DomainAgentAIContextProvider : FileBackedAIContextProvider
     protected ILogger Logger { get; }
     protected string AgentKey { get; }
 
-    public DomainAgentAIContextProvider(ILogger logger, string agentKey)
+    public DomainAgentAIContextProvider(string agentKey, ILogger logger)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(agentKey);
         

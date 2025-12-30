@@ -3,9 +3,9 @@ using System.Text.Json;
 namespace ChatBro.Server.Services.AI.Plugins;
 
 public sealed class GenericDomainAgentAIContextProvider(
-    ILogger<GenericDomainAgentAIContextProvider> logger,
-    string agentKey) 
-    : DomainAgentAIContextProvider(logger, agentKey)
+    string agentKey,
+    ILoggerFactory loggerFactory) 
+    : DomainAgentAIContextProvider(agentKey, loggerFactory.CreateLogger<GenericDomainAgentAIContextProvider>())
 {
     public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
     {

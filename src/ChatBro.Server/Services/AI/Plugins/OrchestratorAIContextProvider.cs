@@ -6,13 +6,22 @@ using Microsoft.Extensions.AI;
 
 namespace ChatBro.Server.Services.AI.Plugins;
 
-public sealed class OrchestratorAIContextProvider(
-    ILogger<OrchestratorAIContextProvider> logger,
-    IEnumerable<ChatSettings.DomainSettings> domainSettings) : FileBackedAIContextProviderBase
+public sealed class OrchestratorAIContextProvider : FileBackedAIContextProviderBase
 {
     private const string OrchestratorInstructionsFilename = "orchestrator.md";
     private const string DomainDescriptionFilename = "description.md";
     private const string AgentDescriptionsPlaceholder = "<agent-descriptions-here>";
+    
+    private readonly ILogger<OrchestratorAIContextProvider> logger;
+    private readonly List<ChatSettings.DomainSettings> domainSettings;
+
+    public OrchestratorAIContextProvider(
+        IEnumerable<ChatSettings.DomainSettings> domainSettings,
+        ILoggerFactory loggerFactory)
+    {
+        logger = loggerFactory.CreateLogger<OrchestratorAIContextProvider>();
+        this.domainSettings = [.. domainSettings];
+    }
 
     public override async ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
     {

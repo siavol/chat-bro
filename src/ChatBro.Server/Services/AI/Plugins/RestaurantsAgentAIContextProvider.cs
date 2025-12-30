@@ -8,15 +8,15 @@ public sealed class RestaurantsAgentAIContextProvider
     : DomainAgentAIContextProvider
 {
     private readonly IChatClient _chatClient;
-    private InternalState _state;
+    private readonly InternalState _state;
     
     public RestaurantsAgentAIContextProvider(
-        IChatClient chatClient,
-        ILogger<RestaurantsAgentAIContextProvider> logger,
         string agentKey,
+        IChatClient chatClient,
+        ILoggerFactory loggerFactory,
         JsonElement serializedState, 
         JsonSerializerOptions? jsonSerializerOptions = null)
-        : base(logger, agentKey)
+        : base(agentKey, loggerFactory.CreateLogger<RestaurantsAgentAIContextProvider>())
     {
         _chatClient = chatClient;
 
@@ -28,7 +28,7 @@ public sealed class RestaurantsAgentAIContextProvider
         }
         catch (JsonException ex)
         {
-            logger.LogError(ex, 
+            Logger.LogError(ex, 
                 "Failed to deserialize RestaurantsAgentAIContextProvider state for AgentKey: {AgentKey}. Initialize with empty state", agentKey);
             _state = new InternalState();
         }

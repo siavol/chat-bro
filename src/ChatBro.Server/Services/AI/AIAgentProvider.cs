@@ -82,18 +82,16 @@ public sealed class AIAgentProvider(
             AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
         };
 
-        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-        var contextProviderLogger = loggerFactory.CreateLogger<RestaurantsAgentAIContextProvider>();
-        
         // little bit strange way to get IChatClient...
         var chatClient = openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient();
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         var options = new ChatClientAgentOptions
         {
             Name = "RestaurantsAgent",
             Description = domainSettings.Description,
-            AIContextProviderFactory = ctx => new RestaurantsAgentAIContextProvider( 
-                chatClient, contextProviderLogger, domainSettings.Key, ctx.SerializedState, ctx.JsonSerializerOptions!),
+            AIContextProviderFactory = ctx => new RestaurantsAgentAIContextProvider(domainSettings.Key, 
+                chatClient, loggerFactory, ctx.SerializedState, ctx.JsonSerializerOptions),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
@@ -114,13 +112,14 @@ public sealed class AIAgentProvider(
     private async Task<DomainAgentRegistration> BuildDocumentsDomainAgentAsync()
     {
         var domainSettings = _chatSettings.Domains.Documents;
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         var tools = await paperlessMcpClient.GetToolsAsync();
 
         var agentOptions = new ChatClientAgentOptions
         {
             Name = "DocumentsAgent",
             Description = domainSettings.Description,
-            AIContextProviderFactory = ctx => ActivatorUtilities.CreateInstance<GenericDomainAgentAIContextProvider>(serviceProvider, domainSettings.Key),
+            AIContextProviderFactory = ctx => new GenericDomainAgentAIContextProvider(domainSettings.Key, loggerFactory),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
@@ -139,6 +138,7 @@ public sealed class AIAgentProvider(
     private AIAgent BuildOrchestratorAgent()
     {
         var orchestrator = _chatSettings.Orchestrator;
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         var tools = new List<AITool>
         {
             AIFunctionFactory.Create(DateTimePlugin.CurrentDateTime, name: "get_current_datetime")
@@ -148,7 +148,7 @@ public sealed class AIAgentProvider(
         {
             Name = "OrchestratorAgent",
             Description = orchestrator.Description,
-            AIContextProviderFactory = ctx => CreateOrchestratorContextProvider(),
+            AIContextProviderFactory = ctx => new OrchestratorAIContextProvider(_chatSettings.Domains.All(), loggerFactory),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
@@ -174,9 +174,6 @@ public sealed class AIAgentProvider(
                 // sourceName: telemetrySource,
                 configure: cfg => cfg.EnableSensitiveData = true)
             .Build();
-
-    private OrchestratorAIContextProvider CreateOrchestratorContextProvider()
-        => ActivatorUtilities.CreateInstance<OrchestratorAIContextProvider>(serviceProvider, _chatSettings.Domains.All());
 
     public void Dispose()
     {

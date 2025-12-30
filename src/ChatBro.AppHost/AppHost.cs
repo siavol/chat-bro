@@ -7,7 +7,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("docker-compose");
 
 var redis = builder.AddRedis("redis")
-    .WithRedisInsight()
+    .WithRedisInsight(container => container.WithLifetime(ContainerLifetime.Persistent))
     .WithDataVolume()
     .WithPersistence(
         interval: TimeSpan.FromMinutes(5),
