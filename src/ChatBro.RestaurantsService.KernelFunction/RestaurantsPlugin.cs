@@ -8,12 +8,8 @@ namespace ChatBro.RestaurantsService.KernelFunction;
 
 public class RestaurantsPlugin
 {
-    // Default coordinates for Helsinki city center
-    private const double DefaultLatitude = 60.1761732;
-    private const double DefaultLongitude = 24.8359807;
-    
     [Description("""
-                 Retrieves nearby restaurants for the specified date and returns a CSV string (one restaurant per line).
+                 Retrieves nearby restaurants for the specified date and location, returns a CSV string (one restaurant per line).
                  Columns (in order):
                  - Name: restaurant name.
                  - MenuSummary: semicolon-separated menu item names. Each menu item may have diet flags in the end.
@@ -26,13 +22,15 @@ public class RestaurantsPlugin
                  """)]
     public static async Task<string> GetRestaurants(
         [Description("The day on which to find information.")] DateTime dateTime,
+        [Description("The latitude coordinate for the location.")] double latitude,
+        [Description("The longitude coordinate for the location.")] double longitude,
         IServiceProvider serviceProvider)
     {
         var client = serviceProvider.GetRequiredService<RestaurantsServiceClient>();
         using var span = Activity.Current?.Source.StartActivity();
 
         var date = DateOnly.FromDateTime(dateTime);
-        var restaurants = await client.GetRestaurantsAsync(date, DefaultLatitude, DefaultLongitude);
+        var restaurants = await client.GetRestaurantsAsync(date, latitude, longitude);
 
         return SerializeCsv(restaurants);
     }
