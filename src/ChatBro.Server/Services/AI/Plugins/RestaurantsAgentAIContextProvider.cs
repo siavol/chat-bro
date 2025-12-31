@@ -87,7 +87,7 @@ public sealed class RestaurantsAgentAIContextProvider
 
     public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
     {
-        Logger.LogDebug("Serializing BuildRestaurants domain agent AI context for AgentKey: {AgentKey}", AgentKey);
+        Logger.LogDebug("Serializing Restaurants domain agent AI context for AgentKey: {AgentKey}", AgentKey);
         return JsonSerializer.SerializeToElement(_state, jsonSerializerOptions);
     }
 
