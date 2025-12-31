@@ -171,7 +171,6 @@ public sealed class AIAgentProvider(
             .AsBuilder()
             .Use(functionMiddleware.CustomFunctionCallingMiddleware)
             .UseOpenTelemetry(
-                // sourceName: telemetrySource,
                 configure: cfg => cfg.EnableSensitiveData = true)
             .Build();
 
