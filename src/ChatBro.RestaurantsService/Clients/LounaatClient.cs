@@ -9,13 +9,13 @@ namespace ChatBro.RestaurantsService.Clients
         IMemoryCache cache,
         ILogger<LounaatClient> logger)
     {
-        private record LounaatCacheKey(DateOnly Date);
+        private record LounaatCacheKey(DateOnly Date, double Latitude, double Longitude);
 
         private static readonly TimeSpan DefaultTtl = TimeSpan.FromDays(1);
 
         public async Task<IList<Restaurant>> GetRestaurants(DateOnly date, double latitude, double longitude, bool ignoreCache = false)
         {
-            var cacheKey = new LounaatCacheKey(date);
+            var cacheKey = new LounaatCacheKey(date, latitude, longitude);
             if (!ignoreCache 
                 && cache.TryGetValue(cacheKey, out IList<Restaurant>? cachedRestaurants) 
                 && cachedRestaurants is not null)
