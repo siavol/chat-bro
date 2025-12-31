@@ -21,7 +21,7 @@ public class RestaurantsPlugin
                  and inner quotes are escaped by doubling them. Use this CSV as structured input for further prompt processing.
                  """)]
     public static async Task<string> GetRestaurants(
-        [Description("The day on which to find information.")] DateTime dateTime,
+        [Description("The day on which to find information in ISO 8601 format (YYYY-MM-DD).")] string date,
         [Description("The latitude coordinate for the location.")] double latitude,
         [Description("The longitude coordinate for the location.")] double longitude,
         IServiceProvider serviceProvider)
@@ -29,8 +29,12 @@ public class RestaurantsPlugin
         var client = serviceProvider.GetRequiredService<RestaurantsServiceClient>();
         using var span = Activity.Current?.Source.StartActivity();
 
-        var date = DateOnly.FromDateTime(dateTime);
-        var restaurants = await client.GetRestaurantsAsync(date, latitude, longitude);
+        if (!DateOnly.TryParse(date, out var dateOnly))
+        {
+            throw new ArgumentException($"Invalid date format: '{date}'. Expected ISO 8601 format (YYYY-MM-DD).", nameof(date));
+        }
+
+        var restaurants = await client.GetRestaurantsAsync(dateOnly, latitude, longitude);
 
         return SerializeCsv(restaurants);
     }
