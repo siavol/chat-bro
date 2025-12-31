@@ -77,17 +77,14 @@ public sealed class RestaurantsAgentAIContextProvider
         if (_state.Location is null)
         {
             Logger.LogInformation("Adding user location request to AI context");
-            aiContext.Messages!.Add(new ChatMessage(
-                ChatRole.User,
+            aiContext.Messages!.Add(new ChatMessage(ChatRole.System,
                 $"Ask the user for their location coordinates (latitude and longitude). Decline to answer any questions until they provide it."));
         }
         else
         {
             Logger.LogInformation("Adding stored user location to AI context");
-            aiContext.Messages!.Add(new ChatMessage(
-                ChatRole.System,
-                $"The user's current location is latitude {_state.Location.Latitude}, longitude {_state.Location.Longitude}. "
-                + "Use these coordinates when calling the get_restaurants function, and do not ask the user for their location again unless they indicate it has changed."));
+            aiContext.Messages!.Add(new ChatMessage(ChatRole.System,
+                $"The user's current location is latitude {FormatCoord(_state.Location.Latitude)}, longitude {FormatCoord(_state.Location.Longitude)}."));
         }
 
         return aiContext;
@@ -98,6 +95,8 @@ public sealed class RestaurantsAgentAIContextProvider
         Logger.LogDebug("Serializing Restaurants domain agent AI context for AgentKey: {AgentKey}", AgentKey);
         return JsonSerializer.SerializeToElement(_state, jsonSerializerOptions);
     }
+
+    private static string FormatCoord(double value) => value.ToString("F6", System.Globalization.CultureInfo.InvariantCulture);
 
     public class InternalState
     {
