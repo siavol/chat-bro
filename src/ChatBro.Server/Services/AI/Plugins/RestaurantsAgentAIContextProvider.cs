@@ -81,6 +81,14 @@ public sealed class RestaurantsAgentAIContextProvider
                 ChatRole.User,
                 $"Ask the user for their location coordinates (latitude and longitude). Decline to answer any questions until they provide it."));
         }
+        else
+        {
+            Logger.LogInformation("Adding stored user location to AI context");
+            aiContext.Messages!.Add(new ChatMessage(
+                ChatRole.System,
+                $"The user's current location is latitude {_state.Location.Latitude}, longitude {_state.Location.Longitude}. "
+                + "Use these coordinates when calling the get_restaurants function, and do not ask the user for their location again unless they indicate it has changed."));
+        }
 
         return aiContext;
     }
