@@ -20,18 +20,30 @@ public sealed class RestaurantsAgentAIContextProvider
     {
         _chatClient = chatClient;
 
-        try
+        _state = RestoreState(serializedState, jsonSerializerOptions);
+    }
+
+    private InternalState RestoreState(JsonElement serializedState, JsonSerializerOptions? jsonSerializerOptions)
+    {
+        if (serializedState.ValueKind == JsonValueKind.Object)
         {
-            _state = serializedState.ValueKind == JsonValueKind.Object ?
-                serializedState.Deserialize<InternalState>(jsonSerializerOptions)! :
-                new InternalState();
+            try
+            {
+                var state = serializedState.Deserialize<InternalState>(jsonSerializerOptions);
+                if (state != null)
+                {
+                    return state;
+                }
+                Logger.LogDebug("No state found in serialized data for AgentKey: {AgentKey}. Initialize with empty state", AgentKey);
+            }
+            catch (JsonException ex)
+            {
+                Logger.LogError(ex,
+                    "Failed to deserialize RestaurantsAgentAIContextProvider state for AgentKey: {AgentKey}. Initialize with empty state", AgentKey);
+            }
         }
-        catch (JsonException ex)
-        {
-            Logger.LogError(ex, 
-                "Failed to deserialize RestaurantsAgentAIContextProvider state for AgentKey: {AgentKey}. Initialize with empty state", agentKey);
-            _state = new InternalState();
-        }
+
+        return new InternalState();
     }
 
     public override async ValueTask InvokedAsync(InvokedContext context, CancellationToken cancellationToken = default)
