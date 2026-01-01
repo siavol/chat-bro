@@ -12,10 +12,19 @@ namespace ChatBro.RestaurantsService.Clients
         private record LounaatCacheKey(DateOnly Date, double Latitude, double Longitude);
 
         private static readonly TimeSpan DefaultTtl = TimeSpan.FromDays(1);
+        
+        // Quantize coordinates to ~1.1km precision to group nearby locations
+        // This reduces cache fragmentation while maintaining location-specific results
+        private const double CoordinatePrecision = 0.01;
+
+        private static double QuantizeCoordinate(double coordinate)
+        {
+            return Math.Round(coordinate / CoordinatePrecision) * CoordinatePrecision;
+        }
 
         public async Task<IList<Restaurant>> GetRestaurants(DateOnly date, double latitude, double longitude, bool ignoreCache = false)
         {
-            var cacheKey = new LounaatCacheKey(date, latitude, longitude);
+            var cacheKey = new LounaatCacheKey(date, QuantizeCoordinate(latitude), QuantizeCoordinate(longitude));
             if (!ignoreCache 
                 && cache.TryGetValue(cacheKey, out IList<Restaurant>? cachedRestaurants) 
                 && cachedRestaurants is not null)
