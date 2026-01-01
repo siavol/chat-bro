@@ -100,7 +100,7 @@ public sealed class RestaurantsAgentAIContextProvider
 
     public class InternalState
     {
-        public UserLocation? Location { get; internal set; }
+        public UserLocation? Location { get; set; }
     }
 
     public record UserLocation(double Latitude, double Longitude);
