@@ -29,7 +29,11 @@ public class RestaurantsServiceClient(HttpClient httpClient, JsonSerializerOptio
     {
         date ??= DateOnly.FromDateTime(DateTime.Now);
         
-        var requestUri = $"lounaat?date={Uri.EscapeDataString(date.Value.ToString("O"))}&lat={Uri.EscapeDataString(latitude.ToString(CultureInfo.InvariantCulture))}&lng={Uri.EscapeDataString(longitude.ToString(CultureInfo.InvariantCulture))}";
+        var dateParam = Uri.EscapeDataString(date.Value.ToString("O"));
+        var latParam = Uri.EscapeDataString(latitude.ToString(CultureInfo.InvariantCulture));
+        var lngParam = Uri.EscapeDataString(longitude.ToString(CultureInfo.InvariantCulture));
+        var requestUri = $"lounaat?date={dateParam}&lat={latParam}&lng={lngParam}";
+        
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
