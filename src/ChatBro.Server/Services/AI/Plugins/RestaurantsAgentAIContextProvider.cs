@@ -8,7 +8,7 @@ public sealed class RestaurantsAgentAIContextProvider
     : DomainAgentAIContextProvider
 {
     private readonly IChatClient _chatClient;
-    private readonly InternalState _state;
+    private InternalState _state;
     
     public RestaurantsAgentAIContextProvider(
         string agentKey,
@@ -61,7 +61,7 @@ public sealed class RestaurantsAgentAIContextProvider
                 cancellationToken: cancellationToken);
             if (result.TryGetResult(out var location))
             {
-                _state.Location = location;
+                _state = new InternalState { Location = location };
                 Logger.LogInformation("Extracted user location for RestaurantsAgent: {Location}", _state.Location);
             }
             else
@@ -101,7 +101,7 @@ public sealed class RestaurantsAgentAIContextProvider
 
     public class InternalState
     {
-        public UserLocation? Location { get; internal set; }
+        public UserLocation? Location { get; init; }
 
         public override string ToString() =>
             Location is null
