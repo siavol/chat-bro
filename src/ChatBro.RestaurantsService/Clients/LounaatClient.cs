@@ -33,9 +33,9 @@ namespace ChatBro.RestaurantsService.Clients
 
         private sealed record LounaatCacheKey
         {
-            // Quantize coordinates to ~1.1km precision to group nearby locations
+            // Quantize coordinates precision to group nearby locations
             // This reduces cache fragmentation while maintaining location-specific results
-            private const double CoordinatePrecision = 0.01;
+            private const double CoordinatePrecision = 0.001;
 
             public DateOnly Date { get; }
             public double Latitude { get; }
