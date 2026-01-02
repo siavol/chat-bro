@@ -32,6 +32,7 @@ public sealed class RestaurantsAgentAIContextProvider
                 var state = serializedState.Deserialize<InternalState>(jsonSerializerOptions);
                 if (state != null)
                 {
+                    Logger.LogDebug("Restored state for AgentKey: {AgentKey}: {State}", AgentKey, state);
                     return state;
                 }
                 Logger.LogDebug("No state found in serialized data for AgentKey: {AgentKey}. Initialize with empty state", AgentKey);
@@ -100,7 +101,12 @@ public sealed class RestaurantsAgentAIContextProvider
 
     public class InternalState
     {
-        public UserLocation? Location { get; set; }
+        public UserLocation? Location { get; internal set; }
+
+        public override string ToString() =>
+            Location is null
+                ? "No location"
+                : $"Location: {FormatCoord(Location.Latitude)}, {FormatCoord(Location.Longitude)}";
     }
 
     public record UserLocation(double Latitude, double Longitude);
