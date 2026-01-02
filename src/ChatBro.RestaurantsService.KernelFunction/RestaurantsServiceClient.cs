@@ -16,14 +16,19 @@ public class RestaurantsServiceClient(HttpClient httpClient, JsonSerializerOptio
     /// Retrieves the list of restaurants from the restaurants service.
     /// </summary>
     /// <param name="date"></param>
+    /// <param name="latitude">Latitude coordinate for location-based search.</param>
+    /// <param name="longitude">Longitude coordinate for location-based search.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of restaurants (possibly empty).</returns>
-    public async Task<IReadOnlyList<Restaurant>> GetRestaurantsAsync(DateOnly? date = null,
+    public async Task<IReadOnlyList<Restaurant>> GetRestaurantsAsync(
+        DateOnly? date,
+        double latitude,
+        double longitude,
         CancellationToken cancellationToken = default)
     {
         date ??= DateOnly.FromDateTime(DateTime.Now);
         
-        var requestUri = $"lounaat?date={date:O}";
+        var requestUri = $"lounaat?date={date:O}&lat={latitude}&lng={longitude}";
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
