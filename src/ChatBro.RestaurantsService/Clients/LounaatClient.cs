@@ -9,8 +9,6 @@ namespace ChatBro.RestaurantsService.Clients
         IMemoryCache cache,
         ILogger<LounaatClient> logger)
     {
-        private record LounaatCacheKey(DateOnly Date, double Latitude, double Longitude);
-
         private static readonly TimeSpan DefaultTtl = TimeSpan.FromDays(1);
 
         public async Task<IList<Restaurant>> GetRestaurants(DateOnly date, double latitude, double longitude, bool ignoreCache = false)
@@ -31,6 +29,29 @@ namespace ChatBro.RestaurantsService.Clients
 
             cache.Set(cacheKey, restaurants, DefaultTtl);
             return restaurants;
+        }
+
+        private sealed record LounaatCacheKey
+        {
+            // Quantize coordinates precision to group nearby locations
+            // This reduces cache fragmentation while maintaining location-specific results
+            private const double CoordinatePrecision = 0.001;
+
+            public DateOnly Date { get; }
+            public double Latitude { get; }
+            public double Longitude { get; }
+
+            public LounaatCacheKey(DateOnly date, double latitude, double longitude)
+            {
+                Date = date;
+                Latitude = QuantizeCoordinate(latitude);
+                Longitude = QuantizeCoordinate(longitude);
+            }
+
+            private static double QuantizeCoordinate(double coordinate)
+            {
+                return Math.Round(coordinate / CoordinatePrecision) * CoordinatePrecision;
+            }
         }
     }
 }
