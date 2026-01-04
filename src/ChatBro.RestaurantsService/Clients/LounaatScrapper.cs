@@ -26,7 +26,6 @@ public class LounaatScrapper(ILogger<LounaatScrapper> logger)
         var apiResp = await http.SendAsync(req);
         var content = await apiResp.Content.ReadAsStringAsync();
         logger.LogDebug("Raw response length: {ContentLength}", content.Length);
-   
         return content;
     }
 
