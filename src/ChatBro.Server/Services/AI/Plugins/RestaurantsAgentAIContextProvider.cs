@@ -32,15 +32,15 @@ public sealed class RestaurantsAgentAIContextProvider
                 var state = serializedState.Deserialize<InternalState>(jsonSerializerOptions);
                 if (state != null)
                 {
-                    Logger.LogDebug("Restored state for AgentKey: {AgentKey}: {State}", AgentKey, state);
+                    Logger.LogDebug("Restored state for {AgentKey}: {State}", AgentKey, state);
                     return state;
                 }
-                Logger.LogDebug("No state found in serialized data for AgentKey: {AgentKey}. Initialize with empty state", AgentKey);
+                Logger.LogDebug("No state found in serialized data for {AgentKey}. Initialize with empty state", AgentKey);
             }
             catch (JsonException ex)
             {
                 Logger.LogError(ex,
-                    "Failed to deserialize RestaurantsAgentAIContextProvider state for AgentKey: {AgentKey}. Initialize with empty state", AgentKey);
+                    "Failed to deserialize RestaurantsAgentAIContextProvider state for {AgentKey}. Initialize with empty state", AgentKey);
             }
         }
 
@@ -106,8 +106,28 @@ public sealed class RestaurantsAgentAIContextProvider
         public override string ToString() =>
             Location is null
                 ? "No location"
-                : $"Location: {FormatCoord(Location.Latitude)}, {FormatCoord(Location.Longitude)}";
+                : $"Location: {Location}";
     }
 
-    public record UserLocation(double Latitude, double Longitude);
+    public record UserLocation
+    {
+        public double Latitude { get; init; }
+        public double Longitude { get; init; }
+        
+        public UserLocation(double latitude, double longitude)
+        {
+            if (latitude is < -90 or > 90)
+            {
+                throw new ArgumentOutOfRangeException(nameof(latitude), latitude, "Latitude must be between -90 and 90 degrees.");
+            }
+            if (longitude is < -180 or > 180)
+            {
+                throw new ArgumentOutOfRangeException(nameof(longitude), longitude, "Longitude must be between -180 and 180 degrees.");
+            }
+            Latitude = latitude;
+            Longitude = longitude;
+        }
+
+        public override string ToString() => $"{FormatCoord(Latitude)}, {FormatCoord(Longitude)}";
+    }
 }
