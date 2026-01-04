@@ -97,7 +97,7 @@ public sealed class RestaurantsAgentAIContextProvider
         return JsonSerializer.SerializeToElement(_state, jsonSerializerOptions);
     }
 
-    private static string FormatCoord(double value) => value.ToString("F6", System.Globalization.CultureInfo.InvariantCulture);
+    private static string FormatCoord(double value) => value.ToString("F7", System.Globalization.CultureInfo.InvariantCulture);
 
     public class InternalState
     {
