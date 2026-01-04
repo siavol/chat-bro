@@ -92,7 +92,12 @@ public sealed class RestaurantsAgentAIContextProvider
             messages,
             new ChatOptions()
             {
-                Instructions = "Analyze the conversation history. Extract ONLY explicitly stated latitude and longitude coordinates (as decimal numbers). If the user has NOT provided specific numeric coordinates, you MUST return null. Do NOT infer, guess, or return default values like 0,0."
+                Instructions = 
+                    """
+                    Analyze the conversation history. Extract ONLY explicitly stated latitude and longitude coordinates 
+                    (as decimal numbers). If the user has NOT provided specific numeric coordinates, you MUST return null. 
+                    Do NOT infer, guess, or return default values like 0,0.
+                    """
             },
             cancellationToken: cancellationToken);
 
