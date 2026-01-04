@@ -9,7 +9,7 @@ namespace ChatBro.RestaurantsService.KernelFunction;
 public class RestaurantsPlugin
 {
     [Description("""
-                 Retrieves nearby restaurants for the specified date and returns a CSV string (one restaurant per line).
+                 Retrieves nearby restaurants for the specified date and location, returns a CSV string (one restaurant per line).
                  Columns (in order):
                  - Name: restaurant name.
                  - MenuSummary: semicolon-separated menu item names. Each menu item may have diet flags in the end.
@@ -21,14 +21,20 @@ public class RestaurantsPlugin
                  and inner quotes are escaped by doubling them. Use this CSV as structured input for further prompt processing.
                  """)]
     public static async Task<string> GetRestaurants(
-        [Description("The day on which to find information.")] DateTime dateTime,
+        [Description("The day on which to find information in ISO 8601 format (YYYY-MM-DD).")] string date,
+        [Description("The latitude coordinate for the location.")] double latitude,
+        [Description("The longitude coordinate for the location.")] double longitude,
         IServiceProvider serviceProvider)
     {
         var client = serviceProvider.GetRequiredService<RestaurantsServiceClient>();
         using var span = Activity.Current?.Source.StartActivity();
 
-        var date = DateOnly.FromDateTime(dateTime);
-        var restaurants = await client.GetRestaurantsAsync(date);
+        if (!DateOnly.TryParse(date, out var dateOnly))
+        {
+            throw new ArgumentException($"Invalid date format: '{date}'. Expected ISO 8601 format (YYYY-MM-DD).", nameof(date));
+        }
+
+        var restaurants = await client.GetRestaurantsAsync(dateOnly, latitude, longitude);
 
         return SerializeCsv(restaurants);
     }

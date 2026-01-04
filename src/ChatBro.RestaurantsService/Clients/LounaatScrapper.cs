@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 
 namespace ChatBro.RestaurantsService.Clients;
 
@@ -6,7 +7,7 @@ public class LounaatScrapper(ILogger<LounaatScrapper> logger)
 {
     private const string LounaatUrl = "https://lounaat.info/";
     
-    public async Task<string> Scrape(DateOnly date)
+    public async Task<string> Scrape(DateOnly date, double latitude, double longitude)
     {
         using var http = GetHttpClient();
 
@@ -15,7 +16,7 @@ public class LounaatScrapper(ILogger<LounaatScrapper> logger)
         homeResp.EnsureSuccessStatusCode();
 
         var day = GetDayOfWeekNumber(date);
-        var apiUrl = $"/ajax/filter?view=lahistolla&day={day}&page=0&coords[lat]=60.1761732&coords[lng]=24.8359807";
+        var apiUrl = $"/ajax/filter?view=lahistolla&day={day}&page=0&coords[lat]={latitude.ToString("F7", CultureInfo.InvariantCulture)}&coords[lng]={longitude.ToString("F7", CultureInfo.InvariantCulture)}";
         using var req = new HttpRequestMessage(HttpMethod.Get, apiUrl);
 
         req.Headers.Referrer = new Uri("https://lounaat.info/");
@@ -25,7 +26,6 @@ public class LounaatScrapper(ILogger<LounaatScrapper> logger)
         var apiResp = await http.SendAsync(req);
         var content = await apiResp.Content.ReadAsStringAsync();
         logger.LogDebug("Raw response length: {ContentLength}", content.Length);
-
         return content;
     }
 

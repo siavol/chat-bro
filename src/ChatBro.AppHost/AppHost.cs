@@ -7,7 +7,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 builder.AddDockerComposeEnvironment("docker-compose");
 
 var redis = builder.AddRedis("redis")
-    .WithRedisInsight()
+    .WithRedisInsight(container => container.WithLifetime(ContainerLifetime.Persistent))
     .WithDataVolume()
     .WithPersistence(
         interval: TimeSpan.FromMinutes(5),
@@ -38,6 +38,7 @@ builder.AddProject<ChatBro_Server>("chatbro-server")
     .WithReference(openAi)
     .WithEnvironment("Chat__AiModel", openAiModel)
     .WithEnvironment("OPENAI_EXPERIMENTAL_ENABLE_OPEN_TELEMETRY", true.ToString())
+    .WithEnvironment("OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", true.ToString())
     .WithReference(redis).WaitFor(redis)
     .WithReference(restaurants).WaitFor(restaurants)
     .WithEnvironment("Telegram__Token", telegramToken)
