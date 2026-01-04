@@ -51,22 +51,10 @@ public sealed class RestaurantsAgentAIContextProvider
     {
         if (_state.Location is null && context.RequestMessages.Any(x => x.Role == ChatRole.User))
         {
-            Logger.LogInformation("Trying to extract user location for RestaurantsAgent");
-            var result = await _chatClient.GetResponseAsync<UserLocation>(
-                context.RequestMessages,
-                new ChatOptions()
-                {
-                    Instructions = "Extract the user's location latitude and longitude from the message if present. If not present return null."
-                },
-                cancellationToken: cancellationToken);
-            if (result.TryGetResult(out var location))
+            var location = await ExtractLocationFromMessages(context.RequestMessages, cancellationToken);
+            if (location is not null)
             {
                 _state = new InternalState { Location = location };
-                Logger.LogInformation("Extracted user location for RestaurantsAgent: {Location}", _state.Location);
-            }
-            else
-            {
-                Logger.LogInformation("No user location found in the message for RestaurantsAgent.");
             }
         }
     }
@@ -95,6 +83,35 @@ public sealed class RestaurantsAgentAIContextProvider
     {
         Logger.LogDebug("Serializing Restaurants domain agent AI context for AgentKey: {AgentKey}", AgentKey);
         return JsonSerializer.SerializeToElement(_state, jsonSerializerOptions);
+    }
+
+    private async Task<UserLocation?> ExtractLocationFromMessages(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default)
+    {
+        Logger.LogInformation("Trying to extract user location for RestaurantsAgent");
+        var result = await _chatClient.GetResponseAsync<UserLocation?>(
+            messages,
+            new ChatOptions()
+            {
+                Instructions = "Analyze the conversation history. Extract ONLY explicitly stated latitude and longitude coordinates (as decimal numbers). If the user has NOT provided specific numeric coordinates, you MUST return null. Do NOT infer, guess, or return default values like 0,0."
+            },
+            cancellationToken: cancellationToken);
+
+        if (!result.TryGetResult(out var location) || location is null)
+        {
+            Logger.LogInformation("No user location found in the message for RestaurantsAgent.");
+            return null;
+        }
+
+        if (location.IsZeroCoordinate())
+        {
+            Logger.LogWarning("Extracted location is 0,0 (likely invalid), ignoring");
+            return null;
+        }
+        else
+        {
+            Logger.LogInformation("Extracted user location for RestaurantsAgent: {Location}", location);
+            return location;
+        }
     }
 
     private static string FormatCoord(double value) => value.ToString("F7", System.Globalization.CultureInfo.InvariantCulture);
@@ -127,6 +144,8 @@ public sealed class RestaurantsAgentAIContextProvider
             Latitude = latitude;
             Longitude = longitude;
         }
+
+        public bool IsZeroCoordinate() => Latitude == 0.0 && Longitude == 0.0;
 
         public override string ToString() => $"{FormatCoord(Latitude)}, {FormatCoord(Longitude)}";
     }
