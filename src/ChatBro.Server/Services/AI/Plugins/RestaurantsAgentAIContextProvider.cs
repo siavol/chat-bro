@@ -150,7 +150,8 @@ public sealed class RestaurantsAgentAIContextProvider
             Longitude = longitude;
         }
 
-        public bool IsZeroCoordinate() => Latitude == 0.0 && Longitude == 0.0;
+        public bool IsZeroCoordinate() =>
+            Math.Abs(Latitude) < 1e-9 && Math.Abs(Longitude) < 1e-9;
 
         public override string ToString() => $"{FormatCoord(Latitude)}, {FormatCoord(Longitude)}";
     }
