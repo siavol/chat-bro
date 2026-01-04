@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ChatBro.RestaurantsService.Model;
@@ -28,7 +29,11 @@ public class RestaurantsServiceClient(HttpClient httpClient, JsonSerializerOptio
     {
         date ??= DateOnly.FromDateTime(DateTime.Now);
         
-        var requestUri = $"lounaat?date={date:O}&lat={latitude}&lng={longitude}";
+        var dateParam = Uri.EscapeDataString(date.Value.ToString("o"));
+        var latParam = Uri.EscapeDataString(latitude.ToString(CultureInfo.InvariantCulture));
+        var lngParam = Uri.EscapeDataString(longitude.ToString(CultureInfo.InvariantCulture));
+        var requestUri = $"lounaat?date={dateParam}&lat={latParam}&lng={lngParam}";
+        
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
