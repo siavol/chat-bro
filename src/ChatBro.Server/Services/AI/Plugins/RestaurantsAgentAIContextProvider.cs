@@ -37,6 +37,11 @@ public sealed class RestaurantsAgentAIContextProvider
                 }
                 Logger.LogDebug("No state found in serialized data for {AgentKey}. Initialize with empty state", AgentKey);
             }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                Logger.LogError(ex,
+                    "Invalid coordinates in RestaurantsAgentAIContextProvider state for {AgentKey}. Initialize with empty state", AgentKey);
+            }
             catch (JsonException ex)
             {
                 Logger.LogError(ex,
@@ -88,34 +93,41 @@ public sealed class RestaurantsAgentAIContextProvider
     private async Task<UserLocation?> ExtractLocationFromMessages(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default)
     {
         Logger.LogInformation("Trying to extract user location for RestaurantsAgent");
-        var result = await _chatClient.GetResponseAsync<UserLocation?>(
-            messages,
-            new ChatOptions()
+        
+        try
+        {
+            var result = await _chatClient.GetResponseAsync<UserLocation?>(
+                messages,
+                new ChatOptions()
+                {
+                    Instructions = 
+                        """
+                        Analyze the conversation history. Extract ONLY explicitly stated latitude and longitude coordinates 
+                        (as decimal numbers). If the user has NOT provided specific numeric coordinates, you MUST return null. 
+                        Do NOT infer, guess, or return default values like 0,0.
+                        """
+                },
+                cancellationToken: cancellationToken);
+
+            if (!result.TryGetResult(out var location) || location is null)
             {
-                Instructions = 
-                    """
-                    Analyze the conversation history. Extract ONLY explicitly stated latitude and longitude coordinates 
-                    (as decimal numbers). If the user has NOT provided specific numeric coordinates, you MUST return null. 
-                    Do NOT infer, guess, or return default values like 0,0.
-                    """
-            },
-            cancellationToken: cancellationToken);
+                Logger.LogInformation("No user location found in the message for RestaurantsAgent.");
+                return null;
+            }
 
-        if (!result.TryGetResult(out var location) || location is null)
-        {
-            Logger.LogInformation("No user location found in the message for RestaurantsAgent.");
-            return null;
-        }
+            if (location.IsZeroCoordinate())
+            {
+                Logger.LogWarning("Extracted location is 0,0 (likely invalid), ignoring");
+                return null;
+            }
 
-        if (location.IsZeroCoordinate())
-        {
-            Logger.LogWarning("Extracted location is 0,0 (likely invalid), ignoring");
-            return null;
-        }
-        else
-        {
             Logger.LogInformation("Extracted user location for RestaurantsAgent: {Location}", location);
             return location;
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            Logger.LogWarning(ex, "AI response contained invalid coordinates. Ignoring.");
+            return null;
         }
     }
 
@@ -136,6 +148,7 @@ public sealed class RestaurantsAgentAIContextProvider
         public double Latitude { get; init; }
         public double Longitude { get; init; }
         
+        [System.Text.Json.Serialization.JsonConstructor]
         public UserLocation(double latitude, double longitude)
         {
             if (latitude is < -90 or > 90)
