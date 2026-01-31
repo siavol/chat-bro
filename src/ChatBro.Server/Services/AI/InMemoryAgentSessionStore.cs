@@ -4,15 +4,15 @@ using StackExchange.Redis;
 
 namespace ChatBro.Server.Services.AI;
 
-public class InMemoryAgentThreadStore(
+public class InMemoryAgentSessionStore(
     IConnectionMultiplexer redis,
-    ILogger<InMemoryAgentThreadStore> logger)
-    : IAgentThreadStore
+    ILogger<InMemoryAgentSessionStore> logger)
+    : IAgentSessionStore
 {
     private readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Web;
     private readonly TimeSpan DefaultTtl = TimeSpan.FromDays(7);
 
-    public async Task<AgentThread> GetThreadAsync(string userId, AIAgent agent)
+    public async Task<AgentSession> GetThreadAsync(string userId, AIAgent agent)
     {
         var db = redis.GetDatabase();
         var key = BuildKey(userId);
@@ -25,11 +25,12 @@ public class InMemoryAgentThreadStore(
                 if (state == null || state.Json.ValueKind == JsonValueKind.Undefined)
                 {
                     logger.LogWarning("Deserialized null or invalid state for user {UserId}", userId);
-                    return agent.GetNewThread();
+                    var session = await agent.GetNewSessionAsync();
+                    return session;
                 }
-                var thread = agent.DeserializeThread(state.Json);
+                var restoredSession = await agent.DeserializeSessionAsync(state.Json);
                 logger.LogDebug("Loaded thread for user {UserId} from Redis", userId);
-                return thread;
+                return restoredSession;
             }
         }
         catch (Exception ex)
@@ -37,10 +38,10 @@ public class InMemoryAgentThreadStore(
             logger.LogWarning(ex, "Failed to load/deserialize thread for user {UserId}, creating a new thread", userId);
         }
 
-        return agent.GetNewThread();
+        return await agent.GetNewSessionAsync();
     }
 
-    public async Task SaveThreadAsync(string userId, AgentThread thread)
+    public async Task SaveThreadAsync(string userId, AgentSession thread)
     {
         var db = redis.GetDatabase();
         var key = BuildKey(userId);

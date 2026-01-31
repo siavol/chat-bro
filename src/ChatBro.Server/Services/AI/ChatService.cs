@@ -2,7 +2,7 @@ namespace ChatBro.Server.Services.AI
 {
     public class ChatService(
         IAIAgentProvider agentProvider,
-        IAgentThreadStore threadStore,
+        IAgentSessionStore sessionStore,
         IDomainToolingBuilder domainToolingBuilder,
         ILogger<ChatService> logger
     )
@@ -10,7 +10,7 @@ namespace ChatBro.Server.Services.AI
         public async Task<string> GetChatResponseAsync(string message, string userId)
         {
             var chatAgent = await agentProvider.GetAgentAsync();
-            var thread = await threadStore.GetThreadAsync(userId, chatAgent);
+            var thread = await sessionStore.GetThreadAsync(userId, chatAgent);
             var domainTooling = await domainToolingBuilder.CreateAsync(userId);
 
             logger.LogInformation("Sending chat request for user {UserId}", userId);
@@ -21,10 +21,10 @@ namespace ChatBro.Server.Services.AI
                 throw new InvalidOperationException("No text response from the model!");
             }
 
-            await threadStore.SaveThreadAsync(userId, thread);
+            await sessionStore.SaveThreadAsync(userId, thread);
             foreach (var domainThread in domainTooling.DomainThreads)
             {
-                await threadStore.SaveThreadAsync(domainThread.ThreadKey, domainThread.Thread);
+                await sessionStore.SaveThreadAsync(domainThread.ThreadKey, domainThread.Thread);
             }
 
             return response.Text;
@@ -33,7 +33,7 @@ namespace ChatBro.Server.Services.AI
         public async Task<bool> ResetChatAsync(string userId)
         {
             logger.LogInformation("Resetting chat thread for user {UserId}", userId);
-            var orchestratorReset = await threadStore.DeleteThreadAsync(userId);
+            var orchestratorReset = await sessionStore.DeleteThreadAsync(userId);
             var domainReset = await domainToolingBuilder.ResetAsync(userId);
             return orchestratorReset || domainReset;
         }

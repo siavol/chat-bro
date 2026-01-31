@@ -5,7 +5,7 @@ namespace ChatBro.Server.Services.AI;
 
 public sealed class DomainToolingBuilder(
     IAIAgentProvider agentProvider,
-    IAgentThreadStore threadStore,
+    IAgentSessionStore sessionStore,
     ILogger<DomainToolingBuilder> logger) : IDomainToolingBuilder
 {
     public async Task<DomainTooling> CreateAsync(string userId, CancellationToken cancellationToken = default)
@@ -17,7 +17,7 @@ public sealed class DomainToolingBuilder(
         foreach (var domain in domainAgents)
         {
             var domainThreadKey = BuildThreadKey(userId, domain.Key);
-            var thread = await threadStore.GetThreadAsync(domainThreadKey, domain.Agent);
+            var thread = await sessionStore.GetThreadAsync(domainThreadKey, domain.Agent);
             logger.LogDebug("Prepared thread {ThreadKey} for domain {DomainKey}", domainThreadKey, domain.Key);
 
             var tool = domain.Agent.AsAIFunction(
@@ -48,7 +48,7 @@ public sealed class DomainToolingBuilder(
         foreach (var domain in domainAgents)
         {
             var domainThreadKey = BuildThreadKey(userId, domain.Key);
-            var deleted = await threadStore.DeleteThreadAsync(domainThreadKey);
+            var deleted = await sessionStore.DeleteThreadAsync(domainThreadKey);
             if (deleted)
             {
                 deletedAny = true;
@@ -63,7 +63,7 @@ public sealed class DomainToolingBuilder(
         => $"{userId}::{domainKey}";
 }
 
-public sealed record DomainThreadHandle(string ThreadKey, AgentThread Thread);
+public sealed record DomainThreadHandle(string ThreadKey, AgentSession Thread);
 
 public sealed record DomainTooling(
     ChatClientAgentRunOptions RunOptions,

@@ -26,7 +26,7 @@ public static class AgentsAiExtensions
             .ValidateOnStart();
         appBuilder.Services.AddSingleton<FunctionMiddleware>();
         appBuilder.Services
-            .AddSingleton<IAgentThreadStore, InMemoryAgentThreadStore>()
+            .AddSingleton<IAgentSessionStore, InMemoryAgentSessionStore>()
             .AddSingleton<IDomainToolingBuilder, DomainToolingBuilder>();
 
         // Register MCP client for Paperless
