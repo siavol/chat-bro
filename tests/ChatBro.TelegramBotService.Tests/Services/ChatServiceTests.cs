@@ -12,7 +12,7 @@ public class ChatServiceTests
     [Fact]
     public async Task ResetChatAsync_WhenStoreDeletes_ReturnsTrue()
     {
-        var threadStore = new FakeThreadStore(true);
+        var threadStore = new FakeSessionStore(true);
         var domainBuilder = new FakeDomainToolingBuilder();
         var service = new ChatService(new FakeAgentProvider(), threadStore, domainBuilder, NullLogger<ChatService>.Instance);
 
@@ -25,7 +25,7 @@ public class ChatServiceTests
     [Fact]
     public async Task ResetChatAsync_WhenStoreHasNoHistory_ReturnsFalse()
     {
-        var threadStore = new FakeThreadStore(false);
+        var threadStore = new FakeSessionStore(false);
         var domainBuilder = new FakeDomainToolingBuilder();
         var service = new ChatService(new FakeAgentProvider(), threadStore, domainBuilder, NullLogger<ChatService>.Instance);
 
@@ -56,11 +56,11 @@ public class ChatServiceTests
         }
     }
 
-    private sealed class FakeThreadStore : IAgentThreadStore
+    private sealed class FakeSessionStore : IAgentSessionStore
     {
         private readonly bool _deleteResult;
 
-        public FakeThreadStore(bool deleteResult)
+        public FakeSessionStore(bool deleteResult)
         {
             _deleteResult = deleteResult;
         }

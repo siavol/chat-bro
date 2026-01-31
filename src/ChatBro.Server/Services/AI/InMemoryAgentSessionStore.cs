@@ -4,10 +4,10 @@ using StackExchange.Redis;
 
 namespace ChatBro.Server.Services.AI;
 
-public class InMemoryAgentThreadStore(
+public class InMemoryAgentSessionStore(
     IConnectionMultiplexer redis,
-    ILogger<InMemoryAgentThreadStore> logger)
-    : IAgentThreadStore
+    ILogger<InMemoryAgentSessionStore> logger)
+    : IAgentSessionStore
 {
     private readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Web;
     private readonly TimeSpan DefaultTtl = TimeSpan.FromDays(7);

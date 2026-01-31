@@ -2,7 +2,7 @@ using Microsoft.Agents.AI;
 
 namespace ChatBro.Server.Services.AI;
 
-public interface IAgentThreadStore
+public interface IAgentSessionStore
 {
     /// <summary>
     /// Gets or creates an AgentSession for the specified session (userId).
@@ -20,4 +20,3 @@ public interface IAgentThreadStore
     /// <returns>True if a thread was deleted, false if no thread existed for the user.</returns>
     Task<bool> DeleteThreadAsync(string userId);
 }
-
