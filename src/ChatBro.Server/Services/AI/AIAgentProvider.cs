@@ -90,17 +90,13 @@ public sealed class AIAgentProvider(
         {
             Name = "RestaurantsAgent",
             Description = domainSettings.Description,
-            AIContextProviderFactory = ctx => new RestaurantsAgentAIContextProvider(domainSettings.Key, 
-                chatClient, loggerFactory, ctx.SerializedState, ctx.JsonSerializerOptions),
+            AIContextProviderFactory = (ctx, _) => ValueTask.FromResult<AIContextProvider>(
+                new RestaurantsAgentAIContextProvider(domainSettings.Key, 
+                    chatClient, loggerFactory, ctx.SerializedState, ctx.JsonSerializerOptions)),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
-            },
-            ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
-                new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
-                ctx.SerializedState,
-                ctx.JsonSerializerOptions,
-                InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded)
+            }
         };
         var agent = CreateAgent(options);
         
@@ -119,16 +115,12 @@ public sealed class AIAgentProvider(
         {
             Name = "DocumentsAgent",
             Description = domainSettings.Description,
-            AIContextProviderFactory = ctx => new GenericDomainAgentAIContextProvider(domainSettings.Key, loggerFactory),
+            AIContextProviderFactory = (_, _) => ValueTask.FromResult<AIContextProvider>(
+                new GenericDomainAgentAIContextProvider(domainSettings.Key, loggerFactory)),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
-            },
-            ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
-                new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
-                ctx.SerializedState,
-                ctx.JsonSerializerOptions,
-                InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded)
+            }
         };
         var agent = CreateAgent(agentOptions);
 
@@ -148,16 +140,12 @@ public sealed class AIAgentProvider(
         {
             Name = "OrchestratorAgent",
             Description = orchestrator.Description,
-            AIContextProviderFactory = ctx => new OrchestratorAIContextProvider(_chatSettings.Domains.All(), loggerFactory),
+            AIContextProviderFactory = (_, _) => ValueTask.FromResult<AIContextProvider>(
+                new OrchestratorAIContextProvider(_chatSettings.Domains.All(), loggerFactory)),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
-            },
-            ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(
-                new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
-                ctx.SerializedState,
-                ctx.JsonSerializerOptions,
-                InMemoryChatMessageStore.ChatReducerTriggerEvent.AfterMessageAdded)
+            }
         };
 
 
@@ -165,9 +153,10 @@ public sealed class AIAgentProvider(
     }
 
     private AIAgent CreateAgent(ChatClientAgentOptions agentOptions) => 
-        openAiClient
-            .GetChatClient(_chatSettings.AiModel)
-            .CreateAIAgent(agentOptions, services: serviceProvider)
+        new ChatClientAgent(
+            openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient(),
+            agentOptions.Name ?? "Agent",
+            agentOptions.Description)
             .AsBuilder()
             .Use(functionMiddleware.CustomFunctionCallingMiddleware)
             .UseOpenTelemetry(

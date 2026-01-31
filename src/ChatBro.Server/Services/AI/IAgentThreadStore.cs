@@ -5,17 +5,17 @@ namespace ChatBro.Server.Services.AI;
 public interface IAgentThreadStore
 {
     /// <summary>
-    /// Gets or creates an AgentThread for the specified session (userId).
+    /// Gets or creates an AgentSession for the specified session (userId).
     /// </summary>
-    Task<AgentThread> GetThreadAsync(string userId, AIAgent agent);
+    Task<AgentSession> GetThreadAsync(string userId, AIAgent agent);
 
     /// <summary>
-    /// Saves the AgentThread state for the specified session (userId).
+    /// Saves the AgentSession state for the specified session (userId).
     /// </summary>
-    Task SaveThreadAsync(string userId, AgentThread thread);
+    Task SaveThreadAsync(string userId, AgentSession thread);
 
     /// <summary>
-    /// Deletes any persisted AgentThread state for the specified session (userId).
+    /// Deletes any persisted AgentSession state for the specified session (userId).
     /// </summary>
     /// <returns>True if a thread was deleted, false if no thread existed for the user.</returns>
     Task<bool> DeleteThreadAsync(string userId);

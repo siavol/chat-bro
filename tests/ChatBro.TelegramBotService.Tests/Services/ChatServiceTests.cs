@@ -67,12 +67,12 @@ public class ChatServiceTests
 
         public string? LastDeletedUserId { get; private set; }
 
-        public Task<AgentThread> GetThreadAsync(string userId, AIAgent agent)
+        public Task<AgentSession> GetThreadAsync(string userId, AIAgent agent)
         {
             throw new NotSupportedException();
         }
 
-        public Task SaveThreadAsync(string userId, AgentThread thread)
+        public Task SaveThreadAsync(string userId, AgentSession thread)
         {
             throw new NotSupportedException();
         }

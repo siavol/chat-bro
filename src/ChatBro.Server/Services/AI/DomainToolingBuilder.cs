@@ -63,7 +63,7 @@ public sealed class DomainToolingBuilder(
         => $"{userId}::{domainKey}";
 }
 
-public sealed record DomainThreadHandle(string ThreadKey, AgentThread Thread);
+public sealed record DomainThreadHandle(string ThreadKey, AgentSession Thread);
 
 public sealed record DomainTooling(
     ChatClientAgentRunOptions RunOptions,
