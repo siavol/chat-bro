@@ -152,16 +152,22 @@ public sealed class AIAgentProvider(
         return CreateAgent(agentOptions);
     }
 
-    private AIAgent CreateAgent(ChatClientAgentOptions agentOptions) => 
-        new ChatClientAgent(
-            openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient(),
-            agentOptions.Name ?? "Agent",
-            agentOptions.Description)
+    private AIAgent CreateAgent(ChatClientAgentOptions agentOptions)
+    {
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+
+        var chatClient = openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient();
+        return new ChatClientAgent(
+                chatClient,
+                agentOptions,
+                loggerFactory,
+                serviceProvider)
             .AsBuilder()
             .Use(functionMiddleware.CustomFunctionCallingMiddleware)
             .UseOpenTelemetry(
                 configure: cfg => cfg.EnableSensitiveData = true)
             .Build();
+    }
 
     public void Dispose()
     {
