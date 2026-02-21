@@ -9,8 +9,6 @@ public static class AgentsAiExtensions
 {
     public static IHostApplicationBuilder AddAgents(this IHostApplicationBuilder appBuilder)
     {
-        AppContext.SetSwitch("OpenAI.Experimental.EnableOpenTelemetry", true);
-
         appBuilder.AddOpenAIClient("openai");
 
         appBuilder.Services.AddOptions<ChatSettings>()
