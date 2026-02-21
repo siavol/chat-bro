@@ -72,7 +72,7 @@ public class ChatServiceTests
             throw new NotSupportedException();
         }
 
-        public Task SaveThreadAsync(string userId, AgentSession thread)
+        public Task SaveThreadAsync(string userId, AIAgent agent, AgentSession thread)
         {
             throw new NotSupportedException();
         }

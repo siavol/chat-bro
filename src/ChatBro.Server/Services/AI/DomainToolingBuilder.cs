@@ -29,7 +29,7 @@ public sealed class DomainToolingBuilder(
                 thread);
 
             tools.Add(tool);
-            threadHandles.Add(new DomainThreadHandle(domainThreadKey, thread));
+            threadHandles.Add(new DomainThreadHandle(domainThreadKey, domain.Agent, thread));
         }
 
         var runOptions = new ChatClientAgentRunOptions(new ChatOptions
@@ -63,7 +63,7 @@ public sealed class DomainToolingBuilder(
         => $"{userId}::{domainKey}";
 }
 
-public sealed record DomainThreadHandle(string ThreadKey, AgentSession Thread);
+    public sealed record DomainThreadHandle(string ThreadKey, AIAgent Agent, AgentSession Thread);
 
 public sealed record DomainTooling(
     ChatClientAgentRunOptions RunOptions,

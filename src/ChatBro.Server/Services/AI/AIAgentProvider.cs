@@ -90,14 +90,15 @@ public sealed class AIAgentProvider(
         {
             Name = "RestaurantsAgent",
             Description = domainSettings.Description,
-            AIContextProviderFactory = (ctx, _) => ValueTask.FromResult<AIContextProvider>(
-                new RestaurantsAgentAIContextProvider(domainSettings.Key, 
-                    chatClient, loggerFactory, ctx.SerializedState, ctx.JsonSerializerOptions)),
-            ChatHistoryProviderFactory = (ctx, _) => ValueTask.FromResult<ChatHistoryProvider>(
-                new InMemoryChatHistoryProvider(
-                    new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
-                    ctx.SerializedState,
-                    ctx.JsonSerializerOptions)),
+            AIContextProviders =
+            [
+                new RestaurantsAgentAIContextProvider(domainSettings.Key, chatClient, loggerFactory)
+            ],
+            ChatHistoryProvider = new InMemoryChatHistoryProvider(
+                new InMemoryChatHistoryProviderOptions
+                {
+                    ChatReducer = new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount)
+                }),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
@@ -120,13 +121,15 @@ public sealed class AIAgentProvider(
         {
             Name = "DocumentsAgent",
             Description = domainSettings.Description,
-            AIContextProviderFactory = (_, _) => ValueTask.FromResult<AIContextProvider>(
-                new GenericDomainAgentAIContextProvider(domainSettings.Key, loggerFactory)),
-            ChatHistoryProviderFactory = (ctx, _) => ValueTask.FromResult<ChatHistoryProvider>(
-                new InMemoryChatHistoryProvider(
-                    new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
-                    ctx.SerializedState,
-                    ctx.JsonSerializerOptions)),
+            AIContextProviders =
+            [
+                new GenericDomainAgentAIContextProvider(domainSettings.Key, loggerFactory)
+            ],
+            ChatHistoryProvider = new InMemoryChatHistoryProvider(
+                new InMemoryChatHistoryProviderOptions
+                {
+                    ChatReducer = new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount)
+                }),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()
@@ -150,13 +153,15 @@ public sealed class AIAgentProvider(
         {
             Name = "OrchestratorAgent",
             Description = orchestrator.Description,
-            AIContextProviderFactory = (_, _) => ValueTask.FromResult<AIContextProvider>(
-                new OrchestratorAIContextProvider(_chatSettings.Domains.All(), loggerFactory)),
-            ChatHistoryProviderFactory = (ctx, _) => ValueTask.FromResult<ChatHistoryProvider>(
-                new InMemoryChatHistoryProvider(
-                    new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount),
-                    ctx.SerializedState,
-                    ctx.JsonSerializerOptions)),
+            AIContextProviders =
+            [
+                new OrchestratorAIContextProvider(_chatSettings.Domains.All(), loggerFactory)
+            ],
+            ChatHistoryProvider = new InMemoryChatHistoryProvider(
+                new InMemoryChatHistoryProviderOptions
+                {
+                    ChatReducer = new MessageCountingChatReducer(_chatSettings.History.ReduceOnMessageCount)
+                }),
             ChatOptions = new ChatOptions
             {
                 Tools = tools.ToArray()

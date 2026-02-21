@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 using ChatBro.Server.Options;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -23,7 +22,7 @@ public sealed class OrchestratorAIContextProvider : FileBackedAIContextProviderB
         this.domainSettings = [.. domainSettings];
     }
 
-    public override async ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
+    protected override async ValueTask<AIContext> ProvideAIContextAsync(InvokingContext context, CancellationToken cancellationToken = default)
     {
         var instructionsPath = Path.Combine(ContextsFolder, OrchestratorInstructionsFilename);
         try
@@ -75,11 +74,5 @@ public sealed class OrchestratorAIContextProvider : FileBackedAIContextProviderB
         return descriptionsBuilder.ToString();
     }
 
-    public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
-    {
-        logger.LogDebug("Serializing orchestrator AI context");
-        return JsonSerializer.SerializeToElement(new InternalState("Orchestrator"), jsonSerializerOptions);
-    }
-
-    internal record InternalState(string StateKey);
+    
 }

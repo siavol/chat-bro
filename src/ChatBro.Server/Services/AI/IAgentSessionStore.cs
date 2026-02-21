@@ -12,7 +12,7 @@ public interface IAgentSessionStore
     /// <summary>
     /// Saves the AgentSession state for the specified session (userId).
     /// </summary>
-    Task SaveThreadAsync(string userId, AgentSession thread);
+    Task SaveThreadAsync(string userId, AIAgent agent, AgentSession thread);
 
     /// <summary>
     /// Deletes any persisted AgentSession state for the specified session (userId).
