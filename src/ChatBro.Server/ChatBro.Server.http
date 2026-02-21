@@ -1,0 +1,11 @@
+@host = https://localhost:7296
+
+### Dev-only debug chat (requires Development env)
+POST {{host}}/debug/chat
+Content-Type: application/json
+
+{
+	"message": "hello from /debug/chat",
+	"userId": "debug"
+}
+

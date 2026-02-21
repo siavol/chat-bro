@@ -97,6 +97,20 @@ dotnet run
 # Interactive parameters will prompt for: telegram-token, openai-api-key, paperless-url, paperless-api-key
 ```
 
+### Debugging Chat (without Telegram)
+
+In Development, ChatBro.Server exposes `POST /debug/chat` to run the same chat pipeline as Telegram (`ChatService.GetChatResponseAsync`) via HTTP.
+
+- Request: `{ "message": "...", "userId": "debug" }`
+- Response: `{ "reply": "...", "traceId": "...", "spanId": "..." }`
+
+Use the returned `traceId` to find the trace in the Aspire dashboard and validate GenAI attributes like `gen_ai.input.messages` and `gen_ai.output.messages`.
+
+Examples:
+
+- VS Code HTTP file: `src/ChatBro.Server/ChatBro.Server.http`
+- Documentation: `docs/ai/debug-chat.md`
+
 ### Running Tests
 
 ```powershell
