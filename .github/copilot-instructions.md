@@ -97,6 +97,26 @@ dotnet run
 # Interactive parameters will prompt for: telegram-token, openai-api-key, paperless-url, paperless-api-key
 ```
 
+### Stopping the AppHost
+
+When you're done testing, stop the Aspire AppHost to avoid lingering background processes and build-time file locks:
+
+- Stop the AppHost itself: if the AppHost was started in a detached/background terminal (e.g., automated `dotnet run`), terminate that terminal/session OR kill the AppHost host processes so the Aspire dashboard/control-plane shuts down and releases file locks.
+
+### Debugging Chat (without Telegram)
+
+In Development, ChatBro.Server exposes `POST /debug/chat` to run the same chat pipeline as Telegram (`ChatService.GetChatResponseAsync`) via HTTP.
+
+- Request: `{ "message": "...", "userId": "debug" }`
+- Response: `{ "reply": "...", "traceId": "...", "spanId": "..." }`
+
+Use the returned `traceId` to find the trace in the Aspire dashboard and validate GenAI attributes like `gen_ai.input.messages` and `gen_ai.output.messages`.
+
+Examples:
+
+- VS Code HTTP file: `src/ChatBro.Server/ChatBro.Server.http`
+- Documentation: see inline comments on the `/debug/chat` endpoint in `ChatBro.Server`
+
 ### Running Tests
 
 ```powershell

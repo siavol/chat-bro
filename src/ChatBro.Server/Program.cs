@@ -1,4 +1,5 @@
 using ChatBro.Server.DependencyInjection;
+using ChatBro.Server.Api;
 using ChatBro.RestaurantsService.KernelFunction;
 using ChatBro.Server.Services.AI;
 
@@ -24,6 +25,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapDebugApi();
 }
 
 app.UseHttpsRedirection();
