@@ -44,7 +44,7 @@ Add per-user observational memory that persists durable facts across conversatio
 ---
 
 ### Phase 2: Memory Prompt Injection Infrastructure
-**Status**: 🔲 Not Started
+**Status**: ✅ Code Complete (runtime unverified)
 
 **Goal**: Wire memory into all agent prompts so the orchestrator and every domain agent can see the user's observations and recent raw messages. The memory load span from Phase 1 will now appear in every chat request trace.
 
@@ -55,18 +55,18 @@ Add per-user observational memory that persists durable facts across conversatio
 - `ChatService` loads memory (with OTEL span) and sets context before agent run
 
 **Validation Criteria**:
-- [ ] Project compiles without errors
+- [x] Project compiles without errors
 - [ ] Store can load `UserMemory` from Redis (verifiable via `/debug/chat` or manual Redis inspection) — `Memory.Load` span appears in Aspire dashboard
 - [ ] When memory exists in Redis, Aspire OTEL traces show a `Memory.Load` span followed by the memory content appearing in `gen_ai.input.messages` for the orchestrator
 - [ ] Domain agent traces also contain the memory system message
 - [ ] When no memory exists, agents function normally — `Memory.Load` span shows zero counts in tags
 
 **Tasks**:
-- [ ] Create [src/ChatBro.Server/Services/AI/Memory/ObservationalMemoryContext.cs](src/ChatBro.Server/Services/AI/Memory/ObservationalMemoryContext.cs) — static class with `AsyncLocal<UserMemory?>` property (`Current` getter/setter)
-- [ ] Create [src/ChatBro.Server/Services/AI/Memory/MemoryAIContextProvider.cs](src/ChatBro.Server/Services/AI/Memory/MemoryAIContextProvider.cs) extending `AIContextProvider` — in `ProvideAIContextAsync`, read `ObservationalMemoryContext.Current`, format observations + raw messages into a system message, return `AIContext`. If null/empty, return empty `AIContext`
-- [ ] Define the memory prompt template (inline or constants class) — structure: `## Observational Memory` / `### Observations` / `{entries}` / `### Recent Unprocessed Messages` / `{entries}`
-- [ ] Modify [src/ChatBro.Server/Services/AI/AIAgentProvider.cs](src/ChatBro.Server/Services/AI/AIAgentProvider.cs): create one `MemoryAIContextProvider` instance, add it to the `AIContextProviders` array of the orchestrator, restaurants agent, and documents agent (append to existing providers)
-- [ ] Modify [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs) `GetChatResponseAsync`: inject `IObservationalMemoryStore`, before `chatAgent.RunAsync` call `store.LoadAsync(userId)` (this already emits a `Memory.Load` span from Phase 1), set `ObservationalMemoryContext.Current = memory`, wrap agent run in try/finally to clear the context
+- [x] Create [src/ChatBro.Server/Services/AI/Memory/ObservationalMemoryContext.cs](src/ChatBro.Server/Services/AI/Memory/ObservationalMemoryContext.cs) — static class with `AsyncLocal<UserMemory?>` property (`Current` getter/setter)
+- [x] Create [src/ChatBro.Server/Services/AI/Memory/MemoryAIContextProvider.cs](src/ChatBro.Server/Services/AI/Memory/MemoryAIContextProvider.cs) extending `AIContextProvider` — in `ProvideAIContextAsync`, read `ObservationalMemoryContext.Current`, format observations + raw messages into a system message, return `AIContext`. If null/empty, return empty `AIContext`
+- [x] Define the memory prompt template (inline or constants class) — structure: `## Observational Memory` / `### Observations` / `{entries}` / `### Recent Unprocessed Messages` / `{entries}`
+- [x] Modify [src/ChatBro.Server/Services/AI/AIAgentProvider.cs](src/ChatBro.Server/Services/AI/AIAgentProvider.cs): create one `MemoryAIContextProvider` instance, add it to the `AIContextProviders` array of the orchestrator, restaurants agent, and documents agent (append to existing providers)
+- [x] Modify [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs) `GetChatResponseAsync`: inject `IObservationalMemoryStore`, before `chatAgent.RunAsync` call `store.LoadAsync(userId)` (this already emits a `Memory.Load` span from Phase 1), set `ObservationalMemoryContext.Current = memory`, wrap agent run in try/finally to clear the context
 
 ---
 
@@ -197,6 +197,7 @@ Add per-user observational memory that persists durable facts across conversatio
 | Phase | Observation |
 |-------|-------------|
 | 1 | All 8 tasks complete. Build succeeds with 0 warnings, 0 errors. Two validation criteria (Redis round-trip, Aspire spans) are deferred to Phase 2+ when the store is actually invoked at runtime. |
+| 2 | All 5 tasks complete. Build succeeds 0/0. `ObservationalMemoryContext` refactored from static to DI singleton per user feedback. `MemoryAIContextProvider` receives it via constructor. `ChatService` loads memory before agent run and clears `AsyncLocal` in finally. **Runtime validation not performed** — 4 criteria (Aspire spans, gen_ai.input.messages, domain traces, empty-memory behavior) require AppHost running and were not tested. |
 
 ## Prompt Reflections & Adjustments
 
@@ -204,3 +205,5 @@ Add per-user observational memory that persists durable facts across conversatio
 |----------------|------------|------------------------------|
 | OTEL should not be a separate phase; integrate into each phase | Original plan treated OTEL as cross-cutting but deferred it, preventing its use as a validation tool during development | Planning prompt should instruct: "Cross-cutting concerns like observability should be integrated into each phase, not deferred. If a concern enables validation of other phases, it must be introduced early." |
 | Phase 1 had runtime validation criteria (Redis round-trip, Aspire spans) but no code path that calls the store | Plan separated infrastructure creation from pipeline wiring, then assigned runtime criteria to the infrastructure-only phase | Every phase must include a call path for what it builds. Validation criteria must be achievable using only artifacts produced by that phase. Before finalizing a phase, check: "Can I trigger every validation criterion by running the app after only this phase's changes?" If not, move the criterion to the phase that enables it. |
+| Phase 2 marked complete with 4 of 5 runtime validation criteria unchecked — only compilation was verified | Plan lists runtime criteria (Aspire spans, gen_ai.input.messages) but doesn't instruct the implementer to start the AppHost and actually run `/debug/chat`. Criteria without execution instructions become aspirational, not actionable. | For each runtime validation criterion, include a concrete execution step: which command to run, which endpoint to hit, what to look for in the dashboard. Separate criteria into "compile-time" (checked by build) and "runtime" (checked by running the app) groups. Mark a phase complete only when ALL criteria are verified — if runtime testing is skipped, the phase status should be "code complete, runtime unverified". |
+| Phase 2 plan specified `ObservationalMemoryContext` as a static class; user corrected to DI singleton | Plan defaulted to static class for `AsyncLocal` carrier without considering that DI-managed singletons are preferred in the codebase for testability and explicit dependency tracking. Static classes hide dependencies and make unit testing harder. | When the plan introduces a shared-state carrier (e.g., `AsyncLocal` wrapper, ambient context), prefer a DI-registered singleton over a static class. Static state should only be used for truly global constants (like `ActivitySource`). If the carrier is consumed by multiple services, it should be injectable so dependencies are explicit in constructors. |

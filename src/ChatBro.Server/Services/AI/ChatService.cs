@@ -1,9 +1,13 @@
+using ChatBro.Server.Services.AI.Memory;
+
 namespace ChatBro.Server.Services.AI
 {
     public class ChatService(
         IAIAgentProvider agentProvider,
         IAgentSessionStore sessionStore,
         IDomainToolingBuilder domainToolingBuilder,
+        IObservationalMemoryStore memoryStore,
+        ObservationalMemoryContext memoryContext,
         ILogger<ChatService> logger
     )
     {
@@ -13,21 +17,32 @@ namespace ChatBro.Server.Services.AI
             var thread = await sessionStore.GetThreadAsync(userId, chatAgent);
             var domainTooling = await domainToolingBuilder.CreateAsync(userId);
 
-            logger.LogInformation("Sending chat request for user {UserId}", userId);
-            var response = await chatAgent.RunAsync(message, thread, domainTooling.RunOptions);
-            logger.LogInformation("Received chat response for user {UserId}, metadata {Metadata}", userId, response.AdditionalProperties);
-            if (string.IsNullOrWhiteSpace(response.Text))
-            {
-                throw new InvalidOperationException("No text response from the model!");
-            }
+            // Load observational memory and set AsyncLocal context for MemoryAIContextProvider
+            var memory = await memoryStore.LoadAsync(userId);
+            memoryContext.Current = memory;
 
-            await sessionStore.SaveThreadAsync(userId, chatAgent, thread);
-            foreach (var domainThread in domainTooling.DomainThreads)
+            try
             {
-                await sessionStore.SaveThreadAsync(domainThread.ThreadKey, domainThread.Agent, domainThread.Thread);
-            }
+                logger.LogInformation("Sending chat request for user {UserId}", userId);
+                var response = await chatAgent.RunAsync(message, thread, domainTooling.RunOptions);
+                logger.LogInformation("Received chat response for user {UserId}, metadata {Metadata}", userId, response.AdditionalProperties);
+                if (string.IsNullOrWhiteSpace(response.Text))
+                {
+                    throw new InvalidOperationException("No text response from the model!");
+                }
 
-            return response.Text;
+                await sessionStore.SaveThreadAsync(userId, chatAgent, thread);
+                foreach (var domainThread in domainTooling.DomainThreads)
+                {
+                    await sessionStore.SaveThreadAsync(domainThread.ThreadKey, domainThread.Agent, domainThread.Thread);
+                }
+
+                return response.Text;
+            }
+            finally
+            {
+                memoryContext.Current = null;
+            }
         }
 
         public async Task<bool> ResetChatAsync(string userId)
