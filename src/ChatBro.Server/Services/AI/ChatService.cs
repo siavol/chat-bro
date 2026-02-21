@@ -31,6 +31,16 @@ namespace ChatBro.Server.Services.AI
                     throw new InvalidOperationException("No text response from the model!");
                 }
 
+                // Capture the raw message exchange for observational memory
+                memory ??= new UserMemory();
+                memory.RawMessages.Add(new RawMessage
+                {
+                    Timestamp = DateTimeOffset.UtcNow,
+                    UserMessage = message,
+                    AssistantResponse = response.Text
+                });
+                await memoryStore.SaveAsync(userId, memory);
+
                 await sessionStore.SaveThreadAsync(userId, chatAgent, thread);
                 foreach (var domainThread in domainTooling.DomainThreads)
                 {
