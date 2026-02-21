@@ -24,7 +24,7 @@ public static class AgentsAiExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
         appBuilder.Services.AddOptions<ObservationalMemorySettings>()
-            .BindConfiguration("Chat:Memory")
+            .BindConfiguration("Chat:ObservationalMemory")
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
