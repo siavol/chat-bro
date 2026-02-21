@@ -4,6 +4,7 @@
             "approve": true,
             "matchCommandLine": true
         },
-        "dotnet list": true
+        "dotnet list": true,
+        "dotnet run": true
     }
 }
