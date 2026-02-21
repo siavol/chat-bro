@@ -33,7 +33,8 @@ public static class AgentsAiExtensions
             .AddSingleton<IAgentSessionStore, InMemoryAgentSessionStore>()
             .AddSingleton<IDomainToolingBuilder, DomainToolingBuilder>()
             .AddSingleton<IObservationalMemoryStore, RedisObservationalMemoryStore>()
-            .AddSingleton<ObservationalMemoryContext>();
+            .AddSingleton<ObservationalMemoryContext>()
+            .AddSingleton<IObserverService, ObserverService>();
 
         // Register MCP client for Paperless
         appBuilder.Services.AddSingleton<PaperlessMcpClient>();

@@ -1,4 +1,6 @@
+using ChatBro.Server.Options;
 using ChatBro.Server.Services.AI.Memory;
+using Microsoft.Extensions.Options;
 
 namespace ChatBro.Server.Services.AI
 {
@@ -8,6 +10,8 @@ namespace ChatBro.Server.Services.AI
         IDomainToolingBuilder domainToolingBuilder,
         IObservationalMemoryStore memoryStore,
         ObservationalMemoryContext memoryContext,
+        IObserverService observerService,
+        IOptions<ObservationalMemorySettings> memorySettings,
         ILogger<ChatService> logger
     )
     {
@@ -40,6 +44,21 @@ namespace ChatBro.Server.Services.AI
                     AssistantResponse = response.Text
                 });
                 await memoryStore.SaveAsync(userId, memory);
+
+                // Trigger observer if raw message count exceeds threshold
+                var settings = memorySettings.Value;
+                if (settings.Enabled && memory.RawMessages.Count >= settings.ObserverRawMessageThreshold)
+                {
+                    try
+                    {
+                        memory = await observerService.ObserveAsync(memory);
+                        await memoryStore.SaveAsync(userId, memory);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Observer failed for user {UserId}; raw messages preserved", userId);
+                    }
+                }
 
                 await sessionStore.SaveThreadAsync(userId, chatAgent, thread);
                 foreach (var domainThread in domainTooling.DomainThreads)

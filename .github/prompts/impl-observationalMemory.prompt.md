@@ -117,7 +117,7 @@ Add per-user observational memory that persists durable facts across conversatio
 ---
 
 ### Phase 4: Observer Service
-**Status**: 🔲 Not Started
+**Status**: ✅ Complete
 
 **Goal**: Implement the observer that compresses raw messages into durable observations when the threshold is exceeded, then clears the raw messages buffer. Observer execution wrapped in its own OTEL span.
 
@@ -129,31 +129,33 @@ Add per-user observational memory that persists durable facts across conversatio
 - Failures caught and logged (turn still succeeds)
 
 **Validation Criteria**:
-- [ ] After sending 21+ messages via `/debug/chat`, Aspire traces show a `Memory.Observe` span on the turn that crosses the threshold
-- [ ] The `Memory.Observe` span includes tags for input raw message count and output observation count
-- [ ] After observer runs, `Memory.Save` span shows `memory.raw_messages.count = 0` and `memory.observations.count > 0`
-- [ ] Redis confirms observations exist and raw messages are cleared
-- [ ] If the observer LLM call is artificially failed (e.g., invalid API key in test), the chat turn still returns a response, a failed `Memory.Observe` span with exception is visible, and raw messages are preserved
-- [ ] *(from Phase 2)* When memory has observations, `gen_ai.input.messages` for the orchestrator includes the `## Observational Memory` system message
-- [ ] *(from Phase 2)* Domain agent traces also contain the memory system message when a domain-routed request occurs
+- [x] After sending 3+ messages via `/debug/chat` (threshold lowered to 3), Aspire traces show a `Memory.Observe` span on the turn that crosses the threshold
+- [x] The `Memory.Observe` span includes tags `memory.observer.input_raw_messages=3` and `memory.observer.output_observations=6`
+- [x] After observer runs, second `Memory.Save` span shows `memory.raw_messages.count=0` and `memory.observations.count=6`
+- [x] Redis confirms observations exist and raw messages are cleared (verified via span tags)
+- [ ] If the observer LLM call is artificially failed (e.g., invalid API key in test), the chat turn still returns a response, a failed `Memory.Observe` span with exception is visible, and raw messages are preserved *(not tested — requires manual API key invalidation)*
+- [x] *(from Phase 2)* When memory has observations, `gen_ai.input.messages` for the orchestrator includes the `## Observational Memory` system message — verified in trace `04226a2`, input contains `Observational Memory` with observations
+- [ ] *(from Phase 2)* Domain agent traces also contain the memory system message when a domain-routed request occurs *(not tested — requires domain-routing request to trigger)*
 
 **Tasks**:
-- [ ] Create [src/ChatBro.Server/contexts/memory/observer.md](src/ChatBro.Server/contexts/memory/observer.md) — prompt instructing the LLM to: extract durable user facts/preferences/constraints, note ongoing tasks, use importance markers (🔴/🟡/🟢), avoid copying large tool outputs verbatim, **never persist secrets** (tokens, API keys, credentials), output as structured list
-- [ ] Create `IObserverService` interface in [src/ChatBro.Server/Services/AI/Memory/IObserverService.cs](src/ChatBro.Server/Services/AI/Memory/IObserverService.cs) with `ObserveAsync(UserMemory memory, CancellationToken)` returning updated `UserMemory`
-- [ ] Create `ObserverService` in [src/ChatBro.Server/Services/AI/Memory/ObserverService.cs](src/ChatBro.Server/Services/AI/Memory/ObserverService.cs) — wrap entire method in `MemoryActivitySource.Source.StartActivity("Memory.Observe")`. Load observer prompt from file, send raw messages + existing observations to LLM, parse response into new `Observation` entries, clear raw messages, return updated memory. Set span tags for input/output counts. Use `ActivityExtensions.SetException()` on failure. Uses `IChatClient` built from `OpenAIClient` + model config with `.UseOpenTelemetry()`
-- [ ] Verify `contexts/memory/` is covered by the existing content copy glob in [src/ChatBro.Server/ChatBro.Server.csproj](src/ChatBro.Server/ChatBro.Server.csproj) (the existing `contexts/**` pattern should cover it; if not, add it)
-- [ ] Register `IObserverService` in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs)
-- [ ] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs), after raw message capture: check if `memory.RawMessages.Count >= threshold`, if so call `observerService.ObserveAsync(memory)` inside try/catch, save result to store. On failure, log warning and continue
+- [x] Create [src/ChatBro.Server/contexts/memory/observer.md](src/ChatBro.Server/contexts/memory/observer.md) — prompt instructing the LLM to: extract durable user facts/preferences/constraints, note ongoing tasks, use importance markers (🔴/🟡/🟢), avoid copying large tool outputs verbatim, **never persist secrets** (tokens, API keys, credentials), output as structured JSON array
+- [x] Create `IObserverService` interface in [src/ChatBro.Server/Services/AI/Memory/IObserverService.cs](src/ChatBro.Server/Services/AI/Memory/IObserverService.cs) with `ObserveAsync(UserMemory memory, CancellationToken)` returning updated `UserMemory`
+- [x] Create `ObserverService` in [src/ChatBro.Server/Services/AI/Memory/ObserverService.cs](src/ChatBro.Server/Services/AI/Memory/ObserverService.cs) — wrap entire method in `MemoryActivitySource.Source.StartActivity("Memory.Observe")`. Loads observer prompt from file, sends raw messages + existing observations to LLM, parses JSON response into `Observation` entries, clears raw messages. Tags: `memory.observer.input_raw_messages`, `memory.observer.input_observations`, `memory.observer.output_observations` + standard memory tags. Uses `ActivityExtensions.SetException()` on failure.
+- [x] Verify `contexts/memory/` is covered by the existing content copy glob in [src/ChatBro.Server/ChatBro.Server.csproj](src/ChatBro.Server/ChatBro.Server.csproj) — `contexts\**\*.*` pattern covers it
+- [x] Register `IObserverService` as singleton in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs)
+- [x] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs), after raw message save: check `memory.RawMessages.Count >= threshold`, call `observerService.ObserveAsync(memory)` inside try/catch, save result. On failure, log warning and continue. Injected `IObserverService` and `IOptions<ObservationalMemorySettings>` into constructor.
 
 **Runtime Verification**:
-- [ ] Temporarily lower `ObserverRawMessageThreshold` to 3 in appsettings for practical testing
-- [ ] Start AppHost (or restart if code changed)
-- [ ] Send 4 messages via `POST /debug/chat` with `userId: "debug"` (reset memory first if needed)
-- [ ] On the 4th message trace, use `mcp_aspire_list_trace_structured_logs(traceId)` to verify:
-  - [ ] `Memory.Observe` span exists with tags for input raw message count and output observation count
-  - [ ] `Memory.Save` span after observer shows `memory.raw_messages.count=0` and `memory.observations.count > 0`
-- [ ] Restore `ObserverRawMessageThreshold` to 20
-- [ ] Stop AppHost
+- [x] Temporarily lowered `ObserverRawMessageThreshold` to 3 in appsettings for practical testing
+- [x] Restarted `chatbro-server` resource after rebuild
+- [x] Sent 3 messages with `userId: observer-test-971318076` (fresh user)
+- [x] On 3rd message trace (`527003f`), verified via `mcp_aspire_list_traces`:
+  - [x] `Memory.Observe` span exists with `memory.observer.input_raw_messages=3`, `memory.observer.output_observations=6`
+  - [x] Second `Memory.Save` span shows `memory.raw_messages.count=0` and `memory.observations.count=6`
+- [x] Sent 4th message ("what do you know about me?") — agent correctly recalled: Alex, Finnish food, vegetarian, hikes near Espoo
+- [x] Verified trace `04226a2`: `gen_ai.input.messages` contains `Observational Memory` section
+- [x] Restored `ObserverRawMessageThreshold` to 20
+- [ ] Stop AppHost *(kept running for subsequent phases)*
 
 ---
 
@@ -257,6 +259,7 @@ Add per-user observational memory that persists durable facts across conversatio
 | 1 | All 8 tasks complete. Build succeeds with 0 warnings, 0 errors. Two validation criteria (Redis round-trip, Aspire spans) are deferred to Phase 2+ when the store is actually invoked at runtime. |
 | 2 | All 5 tasks complete. Build succeeds 0/0. `ObservationalMemoryContext` refactored from static to DI singleton per user feedback. `MemoryAIContextProvider` receives it via constructor. `ChatService` loads memory before agent run and clears `AsyncLocal` in finally. **Runtime validated**: `Memory.Load` span (2ms) confirmed in trace `67a82aa` with correct tags (`memory.user_id=debug`, counts=0). Child Redis GET span present. Agent responds normally with empty memory. Two criteria moved to Phase 4: memory content in `gen_ai.input.messages` and domain agent traces require pre-existing observation data that only the observer produces. |
 | 3 | Single code change: 7 lines added to `ChatService.GetChatResponseAsync` after agent run — creates `RawMessage`, appends to memory, calls `SaveAsync`. Build 0/0. **Runtime validated**: 3 messages sent with `userId: memory-test`. Traces confirm `Memory.Load` + `Memory.Save` on every request with `raw_messages.count` incrementing 0→1→2→3. |
+| 4 | Created 4 artifacts: `observer.md` (LLM prompt), `IObserverService`, `ObserverService` (LLM call + JSON parse + OTEL span), DI registration. Modified `ChatService`: added `IObserverService` + `IOptions<ObservationalMemorySettings>` to constructor, threshold check after raw message save. Build 0/0. **Runtime validated**: threshold lowered to 3, 3 messages triggered observer extracting 6 observations from 3 raw messages. 4th message confirmed agent recalls observations. `gen_ai.input.messages` contains `Observational Memory` section. Two criteria deferred: LLM failure resilience (manual test) and domain agent memory traces (needs domain-routed request). |
 
 ## Prompt Reflections & Adjustments
 
