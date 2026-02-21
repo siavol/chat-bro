@@ -83,7 +83,9 @@ public sealed class AIAgentProvider(
         };
 
         // little bit strange way to get IChatClient...
-        var chatClient = openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient();
+        var chatClient = new ChatClientBuilder(openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient())
+            .UseOpenTelemetry(configure: cfg => cfg.EnableSensitiveData = true)
+            .Build();
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         var options = new ChatClientAgentOptions
@@ -176,7 +178,9 @@ public sealed class AIAgentProvider(
     {
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
-        var chatClient = openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient();
+        var chatClient = new ChatClientBuilder(openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient())
+            .UseOpenTelemetry(configure: cfg => cfg.EnableSensitiveData = true)
+            .Build();
         return new ChatClientAgent(
                 chatClient,
                 agentOptions,

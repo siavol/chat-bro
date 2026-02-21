@@ -28,6 +28,21 @@ The system uses a **two-tier agent architecture**:
 
 ## Critical Patterns
 
+## Security, Secrets, and Telemetry
+
+### OpenTelemetry / GenAI sensitive data
+
+This repository **intentionally captures AI input/output content in OpenTelemetry traces** for debugging and observability.
+
+- It is expected to see settings like `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true` and code paths enabling sensitive capture (e.g., OpenTelemetry wrappers with `EnableSensitiveData = true`).
+- Do **not** block PRs or request changes solely because “sensitive data is captured in traces” when it’s clearly part of this intended instrumentation.
+
+This does **not** mean we commit secrets.
+
+- Never hard-code or commit real credentials (Telegram bot tokens, OpenAI API keys, Paperless API keys, etc.).
+- Secrets must be provided via Aspire UI parameters (`InputType.SecretText`), user secrets, or environment variables injected at runtime.
+- If a PR includes a literal-looking secret value (not just an env var name), treat it as accidental and remove it.
+
 ### AI Function Plugins (Semantic Kernel Style)
 
 Functions exposed to AI agents follow this pattern (see [RestaurantsPlugin.cs](../src/ChatBro.RestaurantsService.KernelFunction/RestaurantsPlugin.cs)):
