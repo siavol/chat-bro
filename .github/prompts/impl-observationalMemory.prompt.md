@@ -29,9 +29,7 @@ Add per-user observational memory that persists durable facts across conversatio
 
 **Validation Criteria**:
 - [x] Project compiles without errors
-- [x] `ObservationalMemorySettings` binds from `Chat:Memory` config section with validation
-- [ ] Store can save, load, and delete `UserMemory` in Redis (verifiable via `/debug/chat` or manual Redis inspection)
-- [ ] Aspire dashboard shows `ChatBro.ObservationalMemory` spans for load/save/delete operations (even if memory is empty, a load span should appear)
+- [x] `ObservationalMemorySettings` binds from `Chat:ObservationalMemory` config section with validation
 
 **Tasks**:
 - [x] Create [src/ChatBro.Server/Services/AI/Memory/MemoryActivitySource.cs](src/ChatBro.Server/Services/AI/Memory/MemoryActivitySource.cs) — static class exposing `ActivitySource Source = new("ChatBro.ObservationalMemory")` and constants for span names (`Memory.Load`, `Memory.Save`, `Memory.Delete`, `Memory.Observe`, `Memory.Reflect`) and tag keys (`memory.user_id`, `memory.observations.count`, `memory.raw_messages.count`)
@@ -58,6 +56,7 @@ Add per-user observational memory that persists durable facts across conversatio
 
 **Validation Criteria**:
 - [ ] Project compiles without errors
+- [ ] Store can load `UserMemory` from Redis (verifiable via `/debug/chat` or manual Redis inspection) — `Memory.Load` span appears in Aspire dashboard
 - [ ] When memory exists in Redis, Aspire OTEL traces show a `Memory.Load` span followed by the memory content appearing in `gen_ai.input.messages` for the orchestrator
 - [ ] Domain agent traces also contain the memory system message
 - [ ] When no memory exists, agents function normally — `Memory.Load` span shows zero counts in tags
@@ -204,3 +203,4 @@ Add per-user observational memory that persists durable facts across conversatio
 | User Correction | Root Cause | Suggested Prompt Improvement |
 |----------------|------------|------------------------------|
 | OTEL should not be a separate phase; integrate into each phase | Original plan treated OTEL as cross-cutting but deferred it, preventing its use as a validation tool during development | Planning prompt should instruct: "Cross-cutting concerns like observability should be integrated into each phase, not deferred. If a concern enables validation of other phases, it must be introduced early." |
+| Phase 1 had runtime validation criteria (Redis round-trip, Aspire spans) but no code path that calls the store | Plan separated infrastructure creation from pipeline wiring, then assigned runtime criteria to the infrastructure-only phase | Every phase must include a call path for what it builds. Validation criteria must be achievable using only artifacts produced by that phase. Before finalizing a phase, check: "Can I trigger every validation criterion by running the app after only this phase's changes?" If not, move the criterion to the phase that enables it. |
