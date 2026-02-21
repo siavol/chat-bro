@@ -10,6 +10,8 @@ public abstract class DomainAgentAIContextProvider : FileBackedAIContextProvider
     protected ILogger Logger { get; }
     protected string AgentKey { get; }
 
+    public override string StateKey => $"{GetType().Name}:{AgentKey}";
+
     public DomainAgentAIContextProvider(string agentKey, ILogger logger)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(agentKey);
@@ -18,7 +20,7 @@ public abstract class DomainAgentAIContextProvider : FileBackedAIContextProvider
         this.AgentKey = agentKey;
     }
 
-    public override async ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
+    protected override async ValueTask<AIContext> ProvideAIContextAsync(InvokingContext context, CancellationToken cancellationToken = default)
     {
         try
         {

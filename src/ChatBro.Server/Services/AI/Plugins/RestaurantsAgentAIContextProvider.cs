@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
@@ -8,82 +7,89 @@ public sealed class RestaurantsAgentAIContextProvider
     : DomainAgentAIContextProvider
 {
     private readonly IChatClient _chatClient;
-    private InternalState _state;
+    private static readonly System.Text.Json.JsonSerializerOptions DefaultJsonOptions = System.Text.Json.JsonSerializerOptions.Web;
     
     public RestaurantsAgentAIContextProvider(
         string agentKey,
         IChatClient chatClient,
-        ILoggerFactory loggerFactory,
-        JsonElement serializedState, 
-        JsonSerializerOptions? jsonSerializerOptions = null)
+        ILoggerFactory loggerFactory)
         : base(agentKey, loggerFactory.CreateLogger<RestaurantsAgentAIContextProvider>())
     {
         _chatClient = chatClient;
-
-        _state = RestoreState(serializedState, jsonSerializerOptions);
     }
 
-    private InternalState RestoreState(JsonElement serializedState, JsonSerializerOptions? jsonSerializerOptions)
+    protected override async ValueTask<AIContext> ProvideAIContextAsync(InvokingContext context, CancellationToken cancellationToken = default)
     {
-        if (serializedState.ValueKind == JsonValueKind.Object)
+        var aiContext = await base.ProvideAIContextAsync(context, cancellationToken);
+
+        var state = context.Session is null
+            ? new InternalState()
+            : GetState(context.Session);
+
+        var baseMessages = aiContext.Messages ?? Enumerable.Empty<ChatMessage>();
+        ChatMessage extraMessage;
+
+        if (state.Location is null)
         {
-            try
-            {
-                var state = serializedState.Deserialize<InternalState>(jsonSerializerOptions);
-                if (state != null)
-                {
-                    Logger.LogDebug("Restored state for {AgentKey}: {State}", AgentKey, state);
-                    return state;
-                }
-                Logger.LogDebug("No state found in serialized data for {AgentKey}. Initialize with empty state", AgentKey);
-            }
-            catch (JsonException ex)
-            {
-                Logger.LogError(ex,
-                    "Failed to deserialize RestaurantsAgentAIContextProvider state for {AgentKey}. Initialize with empty state", AgentKey);
-            }
+            Logger.LogInformation("Adding user location request to AI context");
+            extraMessage = new ChatMessage(
+                ChatRole.System,
+                "Ask the user for their location coordinates (latitude and longitude). Decline to answer any questions until they provide it.");
+        }
+        else
+        {
+            Logger.LogInformation("Adding stored user location to AI context");
+            extraMessage = new ChatMessage(
+                ChatRole.System,
+                $"The user's current location is latitude {FormatCoord(state.Location.Latitude)}, longitude {FormatCoord(state.Location.Longitude)}.");
+        }
+
+        return new AIContext
+        {
+            Instructions = aiContext.Instructions,
+            Tools = aiContext.Tools,
+            Messages = baseMessages.Concat([extraMessage])
+        };
+    }
+
+    protected override async ValueTask StoreAIContextAsync(InvokedContext context, CancellationToken cancellationToken = default)
+    {
+        if (context.Session is null)
+        {
+            return;
+        }
+
+        var state = GetState(context.Session);
+
+        if (state.Location is not null)
+        {
+            return;
+        }
+
+        if (!context.RequestMessages.Any(x => x.Role == ChatRole.User))
+        {
+            return;
+        }
+
+        var location = await ExtractLocationFromMessages(context.RequestMessages, cancellationToken);
+        if (location is not null)
+        {
+            SetState(context.Session, new InternalState { Location = location });
+        }
+    }
+
+    private InternalState GetState(AgentSession session)
+    {
+        if (session.StateBag.TryGetValue<InternalState>(StateKey, out var state, DefaultJsonOptions) && state is not null)
+        {
+            return state;
         }
 
         return new InternalState();
     }
 
-    public override async ValueTask InvokedAsync(InvokedContext context, CancellationToken cancellationToken = default)
-    {
-        if (_state.Location is null && context.RequestMessages.Any(x => x.Role == ChatRole.User))
-        {
-            var location = await ExtractLocationFromMessages(context.RequestMessages, cancellationToken);
-            if (location is not null)
-            {
-                _state = new InternalState { Location = location };
-            }
-        }
-    }
-
-    public override async ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
-    {
-        var aiContext = await base.InvokingAsync(context, cancellationToken);
-
-        if (_state.Location is null)
-        {
-            Logger.LogInformation("Adding user location request to AI context");
-            aiContext.Messages!.Add(new ChatMessage(ChatRole.System,
-                $"Ask the user for their location coordinates (latitude and longitude). Decline to answer any questions until they provide it."));
-        }
-        else
-        {
-            Logger.LogInformation("Adding stored user location to AI context");
-            aiContext.Messages!.Add(new ChatMessage(ChatRole.System,
-                $"The user's current location is latitude {FormatCoord(_state.Location.Latitude)}, longitude {FormatCoord(_state.Location.Longitude)}."));
-        }
-
-        return aiContext;
-    }
-
-    public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
-    {
-        Logger.LogDebug("Serializing Restaurants domain agent AI context for AgentKey: {AgentKey}", AgentKey);
-        return JsonSerializer.SerializeToElement(_state, jsonSerializerOptions);
-    }
+    private void SetState(AgentSession session, InternalState state)
+        => session.StateBag.SetValue(StateKey, state, DefaultJsonOptions);
 
     private async Task<UserLocation?> ExtractLocationFromMessages(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken = default)
     {
@@ -121,7 +127,7 @@ public sealed class RestaurantsAgentAIContextProvider
 
     private static string FormatCoord(double value) => value.ToString("F7", System.Globalization.CultureInfo.InvariantCulture);
 
-    public class InternalState
+    public sealed class InternalState
     {
         public UserLocation? Location { get; init; }
 

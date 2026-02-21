@@ -21,10 +21,10 @@ namespace ChatBro.Server.Services.AI
                 throw new InvalidOperationException("No text response from the model!");
             }
 
-            await sessionStore.SaveThreadAsync(userId, thread);
+            await sessionStore.SaveThreadAsync(userId, chatAgent, thread);
             foreach (var domainThread in domainTooling.DomainThreads)
             {
-                await sessionStore.SaveThreadAsync(domainThread.ThreadKey, domainThread.Thread);
+                await sessionStore.SaveThreadAsync(domainThread.ThreadKey, domainThread.Agent, domainThread.Thread);
             }
 
             return response.Text;

@@ -25,10 +25,10 @@ public class InMemoryAgentSessionStore(
                 if (state == null || state.Json.ValueKind == JsonValueKind.Undefined)
                 {
                     logger.LogWarning("Deserialized null or invalid state for user {UserId}", userId);
-                    var session = await agent.GetNewSessionAsync();
+                    var session = await agent.CreateSessionAsync();
                     return session;
                 }
-                var restoredSession = await agent.DeserializeSessionAsync(state.Json);
+                var restoredSession = await agent.DeserializeSessionAsync(state.Json, JsonOptions);
                 logger.LogDebug("Loaded thread for user {UserId} from Redis", userId);
                 return restoredSession;
             }
@@ -38,16 +38,16 @@ public class InMemoryAgentSessionStore(
             logger.LogWarning(ex, "Failed to load/deserialize thread for user {UserId}, creating a new thread", userId);
         }
 
-        return await agent.GetNewSessionAsync();
+        return await agent.CreateSessionAsync();
     }
 
-    public async Task SaveThreadAsync(string userId, AgentSession thread)
+    public async Task SaveThreadAsync(string userId, AIAgent agent, AgentSession thread)
     {
         var db = redis.GetDatabase();
         var key = BuildKey(userId);
         try
         {
-            var element = thread.Serialize(JsonOptions);
+            var element = await agent.SerializeSessionAsync(thread, JsonOptions);
             var state = new ThreadState(element);
             var json = JsonSerializer.Serialize(state, JsonOptions);
             await db.StringSetAsync(key, json, DefaultTtl);
