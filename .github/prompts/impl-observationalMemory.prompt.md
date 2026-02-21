@@ -16,7 +16,7 @@ Add per-user observational memory that persists durable facts across conversatio
 ## Phases
 
 ### Phase 1: Memory Model, Options, Storage Service, and ActivitySource
-**Status**: 🔲 Not Started
+**Status**: ✅ Complete
 
 **Goal**: Establish the foundational data model, configuration, Redis persistence, and the shared `ActivitySource` for observational memory. Every subsequent phase will use this `ActivitySource` to emit spans.
 
@@ -28,20 +28,20 @@ Add per-user observational memory that persists durable facts across conversatio
 - Configuration wired in appsettings
 
 **Validation Criteria**:
-- [ ] Project compiles without errors
-- [ ] `ObservationalMemorySettings` binds from `Chat:Memory` config section with validation
+- [x] Project compiles without errors
+- [x] `ObservationalMemorySettings` binds from `Chat:Memory` config section with validation
 - [ ] Store can save, load, and delete `UserMemory` in Redis (verifiable via `/debug/chat` or manual Redis inspection)
 - [ ] Aspire dashboard shows `ChatBro.ObservationalMemory` spans for load/save/delete operations (even if memory is empty, a load span should appear)
 
 **Tasks**:
-- [ ] Create [src/ChatBro.Server/Services/AI/Memory/MemoryActivitySource.cs](src/ChatBro.Server/Services/AI/Memory/MemoryActivitySource.cs) — static class exposing `ActivitySource Source = new("ChatBro.ObservationalMemory")` and constants for span names (`Memory.Load`, `Memory.Save`, `Memory.Delete`, `Memory.Observe`, `Memory.Reflect`) and tag keys (`memory.user_id`, `memory.observations.count`, `memory.raw_messages.count`)
-- [ ] Create [src/ChatBro.Server/Options/ObservationalMemorySettings.cs](src/ChatBro.Server/Options/ObservationalMemorySettings.cs) with properties: `ObserverRawMessageThreshold` (int, default 20), `ReflectorObservationThreshold` (int, default 50), `Enabled` (bool, default true)
-- [ ] Create `UserMemory` model in [src/ChatBro.Server/Services/AI/Memory/UserMemory.cs](src/ChatBro.Server/Services/AI/Memory/UserMemory.cs) — record with `List<Observation>` (each: `DateTimeOffset Timestamp`, `string Text`, `string Importance`) and `List<RawMessage>` (each: `DateTimeOffset Timestamp`, `string UserMessage`, `string AssistantResponse`)
-- [ ] Create `IObservationalMemoryStore` interface in [src/ChatBro.Server/Services/AI/Memory/IObservationalMemoryStore.cs](src/ChatBro.Server/Services/AI/Memory/IObservationalMemoryStore.cs) with methods: `LoadAsync(userId)`, `SaveAsync(userId, memory)`, `DeleteAsync(userId)`
-- [ ] Create `RedisObservationalMemoryStore` in [src/ChatBro.Server/Services/AI/Memory/RedisObservationalMemoryStore.cs](src/ChatBro.Server/Services/AI/Memory/RedisObservationalMemoryStore.cs) using `IConnectionMultiplexer`, key `chatbro:memory:{userId}`, no TTL, JSON serialization. Wrap each method in an `Activity` from `MemoryActivitySource.Source` — set tags `memory.user_id`, `memory.observations.count`, `memory.raw_messages.count`. Use `ActivityExtensions.SetException()` from [src/ChatBro.ServiceDefaults/ActivityExtensions.cs](src/ChatBro.ServiceDefaults/ActivityExtensions.cs) on failure
-- [ ] Add `ObservationalMemorySettings` options registration in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs) — bind `Chat:Memory`, validate data annotations
-- [ ] Register `IObservationalMemoryStore` as singleton in `AgentsAiExtensions.AddAgents()`
-- [ ] Add `Memory` section to [src/ChatBro.Server/appsettings.json](src/ChatBro.Server/appsettings.json) under `Chat` with default thresholds
+- [x] Create [src/ChatBro.Server/Services/AI/Memory/MemoryActivitySource.cs](src/ChatBro.Server/Services/AI/Memory/MemoryActivitySource.cs) — static class exposing `ActivitySource Source = new("ChatBro.ObservationalMemory")` and constants for span names (`Memory.Load`, `Memory.Save`, `Memory.Delete`, `Memory.Observe`, `Memory.Reflect`) and tag keys (`memory.user_id`, `memory.observations.count`, `memory.raw_messages.count`)
+- [x] Create [src/ChatBro.Server/Options/ObservationalMemorySettings.cs](src/ChatBro.Server/Options/ObservationalMemorySettings.cs) with properties: `ObserverRawMessageThreshold` (int, default 20), `ReflectorObservationThreshold` (int, default 50), `Enabled` (bool, default true)
+- [x] Create `UserMemory` model in [src/ChatBro.Server/Services/AI/Memory/UserMemory.cs](src/ChatBro.Server/Services/AI/Memory/UserMemory.cs) — record with `List<Observation>` (each: `DateTimeOffset Timestamp`, `string Text`, `string Importance`) and `List<RawMessage>` (each: `DateTimeOffset Timestamp`, `string UserMessage`, `string AssistantResponse`)
+- [x] Create `IObservationalMemoryStore` interface in [src/ChatBro.Server/Services/AI/Memory/IObservationalMemoryStore.cs](src/ChatBro.Server/Services/AI/Memory/IObservationalMemoryStore.cs) with methods: `LoadAsync(userId)`, `SaveAsync(userId, memory)`, `DeleteAsync(userId)`
+- [x] Create `RedisObservationalMemoryStore` in [src/ChatBro.Server/Services/AI/Memory/RedisObservationalMemoryStore.cs](src/ChatBro.Server/Services/AI/Memory/RedisObservationalMemoryStore.cs) using `IConnectionMultiplexer`, key `chatbro:memory:{userId}`, no TTL, JSON serialization. Wrap each method in an `Activity` from `MemoryActivitySource.Source` — set tags `memory.user_id`, `memory.observations.count`, `memory.raw_messages.count`. Use `ActivityExtensions.SetException()` from [src/ChatBro.ServiceDefaults/ActivityExtensions.cs](src/ChatBro.ServiceDefaults/ActivityExtensions.cs) on failure
+- [x] Add `ObservationalMemorySettings` options registration in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs) — bind `Chat:Memory`, validate data annotations
+- [x] Register `IObservationalMemoryStore` as singleton in `AgentsAiExtensions.AddAgents()`
+- [x] Add `Memory` section to [src/ChatBro.Server/appsettings.json](src/ChatBro.Server/appsettings.json) under `Chat` with default thresholds
 
 ---
 
@@ -197,7 +197,7 @@ Add per-user observational memory that persists durable facts across conversatio
 
 | Phase | Observation |
 |-------|-------------|
-| — | *(No observations yet)* |
+| 1 | All 8 tasks complete. Build succeeds with 0 warnings, 0 errors. Two validation criteria (Redis round-trip, Aspire spans) are deferred to Phase 2+ when the store is actually invoked at runtime. |
 
 ## Prompt Reflections & Adjustments
 

@@ -1,6 +1,7 @@
 using ChatBro.Server.Options;
 using ChatBro.Server.Services;
 using ChatBro.Server.Services.AI;
+using ChatBro.Server.Services.AI.Memory;
 using ChatBro.Server.Services.AI.Plugins;
 
 namespace ChatBro.Server.DependencyInjection;
@@ -22,10 +23,16 @@ public static class AgentsAiExtensions
             })
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        appBuilder.Services.AddOptions<ObservationalMemorySettings>()
+            .BindConfiguration("Chat:Memory")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         appBuilder.Services.AddSingleton<FunctionMiddleware>();
         appBuilder.Services
             .AddSingleton<IAgentSessionStore, InMemoryAgentSessionStore>()
-            .AddSingleton<IDomainToolingBuilder, DomainToolingBuilder>();
+            .AddSingleton<IDomainToolingBuilder, DomainToolingBuilder>()
+            .AddSingleton<IObservationalMemoryStore, RedisObservationalMemoryStore>();
 
         // Register MCP client for Paperless
         appBuilder.Services.AddSingleton<PaperlessMcpClient>();
