@@ -13,6 +13,15 @@ Add per-user observational memory that persists durable facts across conversatio
 - `ActivitySource("ChatBro.ObservationalMemory")` used from Phase 1 onward (already matched by `ChatBro.*` wildcard in [src/ChatBro.ServiceDefaults/Extensions.cs](src/ChatBro.ServiceDefaults/Extensions.cs))
 - Message-count based thresholds: observer at 20 raw messages, reflector at 50 observations
 
+**Runtime Verification Prerequisites**:
+- AppHost user-secrets are already configured (telegram-token, openai-api-key, paperless-url, paperless-api-key) — AppHost starts non-interactively
+- Start AppHost: `dotnet run --project src/ChatBro.AppHost` (as background process)
+- Verify resources are running: use `mcp_aspire_list_resources` to confirm `chatbro-server` is in Running state
+- Debug endpoint: `POST https://localhost:7296/debug/chat` with `{"message": "...", "userId": "debug"}` — response includes `traceId` and `spanId`
+- Trace inspection: use `mcp_aspire_list_traces(resourceName: "chatbro-server")` and `mcp_aspire_list_trace_structured_logs(traceId)` to verify spans and tags
+- AppHost should be started once before the first phase with runtime criteria, kept running across phases, and stopped after the last phase is verified
+- When code changes require a restart, stop the AppHost process and start it again
+
 ## Phases
 
 ### Phase 1: Memory Model, Options, Storage Service, and ActivitySource
@@ -44,7 +53,7 @@ Add per-user observational memory that persists durable facts across conversatio
 ---
 
 ### Phase 2: Memory Prompt Injection Infrastructure
-**Status**: ✅ Code Complete (runtime unverified)
+**Status**: ✅ Complete
 
 **Goal**: Wire memory into all agent prompts so the orchestrator and every domain agent can see the user's observations and recent raw messages. The memory load span from Phase 1 will now appear in every chat request trace.
 
@@ -56,10 +65,10 @@ Add per-user observational memory that persists durable facts across conversatio
 
 **Validation Criteria**:
 - [x] Project compiles without errors
-- [ ] Store can load `UserMemory` from Redis (verifiable via `/debug/chat` or manual Redis inspection) — `Memory.Load` span appears in Aspire dashboard
-- [ ] When memory exists in Redis, Aspire OTEL traces show a `Memory.Load` span followed by the memory content appearing in `gen_ai.input.messages` for the orchestrator
-- [ ] Domain agent traces also contain the memory system message
-- [ ] When no memory exists, agents function normally — `Memory.Load` span shows zero counts in tags
+- [x] Store can load `UserMemory` from Redis (verifiable via `/debug/chat` or manual Redis inspection) — `Memory.Load` span appears in Aspire dashboard
+- [ ] When memory exists in Redis, Aspire OTEL traces show a `Memory.Load` span followed by the memory content appearing in `gen_ai.input.messages` for the orchestrator *(deferred to Phase 3+ — requires pre-existing memory data)*
+- [ ] Domain agent traces also contain the memory system message *(deferred to Phase 3+ — requires domain-routing request with pre-existing memory)*
+- [x] When no memory exists, agents function normally — `Memory.Load` span shows zero counts in tags
 
 **Tasks**:
 - [x] Create [src/ChatBro.Server/Services/AI/Memory/ObservationalMemoryContext.cs](src/ChatBro.Server/Services/AI/Memory/ObservationalMemoryContext.cs) — static class with `AsyncLocal<UserMemory?>` property (`Current` getter/setter)
@@ -67,6 +76,15 @@ Add per-user observational memory that persists durable facts across conversatio
 - [x] Define the memory prompt template (inline or constants class) — structure: `## Observational Memory` / `### Observations` / `{entries}` / `### Recent Unprocessed Messages` / `{entries}`
 - [x] Modify [src/ChatBro.Server/Services/AI/AIAgentProvider.cs](src/ChatBro.Server/Services/AI/AIAgentProvider.cs): create one `MemoryAIContextProvider` instance, add it to the `AIContextProviders` array of the orchestrator, restaurants agent, and documents agent (append to existing providers)
 - [x] Modify [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs) `GetChatResponseAsync`: inject `IObservationalMemoryStore`, before `chatAgent.RunAsync` call `store.LoadAsync(userId)` (this already emits a `Memory.Load` span from Phase 1), set `ObservationalMemoryContext.Current = memory`, wrap agent run in try/finally to clear the context
+
+**Runtime Verification**:
+- [x] Start AppHost (or restart if already running after code changes) — restarted `chatbro-server` resource via Aspire
+- [x] Confirm `chatbro-server` is Running via `mcp_aspire_list_resources`
+- [x] Send `POST /debug/chat` with `{"message": "hi", "userId": "debug"}` — traceId: `67a82aa69341a381f07ac04ad4e99e13`
+- [x] Use `mcp_aspire_list_traces` to find the trace, then `mcp_aspire_list_trace_structured_logs(traceId)` to verify:
+  - [x] `Memory.Load` span exists (span_id: `fd7c1ce`, 2ms) with tags `memory.user_id=debug`, `memory.observations.count=0`, `memory.raw_messages.count=0` — child Redis GET span (`912669a`) confirms actual Redis lookup
+  - [x] Agent response is successful (HTTP 200, reply: "Hey bro, what do you want to do?")
+- [ ] Stop AppHost *(kept running for subsequent phases)*
 
 ---
 
@@ -87,6 +105,14 @@ Add per-user observational memory that persists durable facts across conversatio
 - [ ] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs) `GetChatResponseAsync`, after `chatAgent.RunAsync` returns `response`: create a `RawMessage` with the user's `message`, `response.Text`, and `DateTimeOffset.UtcNow`
 - [ ] Append to the loaded `UserMemory.RawMessages` list (or create new `UserMemory` if null)
 - [ ] Call `IObservationalMemoryStore.SaveAsync(userId, memory)` to persist (this already emits a `Memory.Save` span from Phase 1)
+
+**Runtime Verification**:
+- [ ] Start AppHost (or restart if code changed)
+- [ ] Send 3 messages via `POST /debug/chat` with `userId: "debug"`
+- [ ] After each message, use `mcp_aspire_list_traces` + `mcp_aspire_list_trace_structured_logs(traceId)` to verify:
+  - [ ] Both `Memory.Load` and `Memory.Save` spans exist in each trace
+  - [ ] `memory.raw_messages.count` tag increments across requests (1, 2, 3)
+- [ ] Stop AppHost
 
 ---
 
@@ -117,6 +143,16 @@ Add per-user observational memory that persists durable facts across conversatio
 - [ ] Register `IObserverService` in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs)
 - [ ] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs), after raw message capture: check if `memory.RawMessages.Count >= threshold`, if so call `observerService.ObserveAsync(memory)` inside try/catch, save result to store. On failure, log warning and continue
 
+**Runtime Verification**:
+- [ ] Temporarily lower `ObserverRawMessageThreshold` to 3 in appsettings for practical testing
+- [ ] Start AppHost (or restart if code changed)
+- [ ] Send 4 messages via `POST /debug/chat` with `userId: "debug"` (reset memory first if needed)
+- [ ] On the 4th message trace, use `mcp_aspire_list_trace_structured_logs(traceId)` to verify:
+  - [ ] `Memory.Observe` span exists with tags for input raw message count and output observation count
+  - [ ] `Memory.Save` span after observer shows `memory.raw_messages.count=0` and `memory.observations.count > 0`
+- [ ] Restore `ObserverRawMessageThreshold` to 20
+- [ ] Stop AppHost
+
 ---
 
 ### Phase 5: Reflector Service
@@ -144,6 +180,16 @@ Add per-user observational memory that persists durable facts across conversatio
 - [ ] Register `IReflectorService` in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs)
 - [ ] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs), after observer: check if `memory.Observations.Count >= reflectorThreshold`, if so call `reflectorService.ReflectAsync(memory)` inside try/catch, save result. On failure, log and continue
 
+**Runtime Verification**:
+- [ ] Temporarily lower `ObserverRawMessageThreshold` to 2 and `ReflectorObservationThreshold` to 3 in appsettings for practical testing
+- [ ] Start AppHost (or restart if code changed), reset memory for `debug` user
+- [ ] Send enough messages to trigger observer multiple times until observations exceed reflector threshold
+- [ ] On the triggering trace, use `mcp_aspire_list_trace_structured_logs(traceId)` to verify:
+  - [ ] `Memory.Reflect` span exists with before/after observation counts as tags
+  - [ ] Final `Memory.Save` span shows reduced `memory.observations.count`
+- [ ] Restore thresholds to defaults (20 / 50)
+- [ ] Stop AppHost
+
 ---
 
 ### Phase 6: Reset Integration
@@ -163,6 +209,15 @@ Add per-user observational memory that persists durable facts across conversatio
 **Tasks**:
 - [ ] Inject `IObservationalMemoryStore` into `ChatService` constructor (may already be done from Phase 2)
 - [ ] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs) `ResetChatAsync`: add call to `IObservationalMemoryStore.DeleteAsync(userId)` alongside existing thread deletion (this already emits a `Memory.Delete` span from Phase 1)
+
+**Runtime Verification**:
+- [ ] Start AppHost (or restart if code changed)
+- [ ] Send a message via `POST /debug/chat` with `userId: "debug"` to ensure memory exists
+- [ ] Send `/reset` message (or call reset endpoint) for `userId: "debug"`
+- [ ] Use `mcp_aspire_list_traces` + `mcp_aspire_list_trace_structured_logs(traceId)` on the reset trace to verify:
+  - [ ] `Memory.Delete` span exists with `memory.user_id=debug`
+- [ ] Send another message and verify `Memory.Load` span shows `memory.observations.count=0`, `memory.raw_messages.count=0`
+- [ ] Stop AppHost
 
 ---
 
@@ -185,10 +240,11 @@ Add per-user observational memory that persists durable facts across conversatio
 
 **Tasks**:
 - [ ] Test via [src/ChatBro.Server/ChatBro.Server.http](src/ChatBro.Server/ChatBro.Server.http) — send 25+ messages with varied topics, verify observations appear
-- [ ] Verify in Aspire dashboard that the full span tree is correct and all tags populate
-- [ ] Test `/reset` clears the memory key
+- [ ] Verify via `mcp_aspire_list_traces` + `mcp_aspire_list_trace_structured_logs` that the full span tree is correct and all tags populate
+- [ ] Test `/reset` clears the memory key — verify via `Memory.Delete` span and subsequent `Memory.Load` showing zero counts
 - [ ] Create [docs/ai/observational-memory.md](docs/ai/observational-memory.md) documenting the architecture (memory model, observer/reflector flow, configuration, prompt files, OTEL span reference)
 - [ ] Update orchestrator prompt in [src/ChatBro.Server/contexts/orchestrator.md](src/ChatBro.Server/contexts/orchestrator.md) if needed — add a note that the agent has access to observational memory
+- [ ] Stop AppHost when all verification is complete
 
 ---
 
@@ -197,7 +253,7 @@ Add per-user observational memory that persists durable facts across conversatio
 | Phase | Observation |
 |-------|-------------|
 | 1 | All 8 tasks complete. Build succeeds with 0 warnings, 0 errors. Two validation criteria (Redis round-trip, Aspire spans) are deferred to Phase 2+ when the store is actually invoked at runtime. |
-| 2 | All 5 tasks complete. Build succeeds 0/0. `ObservationalMemoryContext` refactored from static to DI singleton per user feedback. `MemoryAIContextProvider` receives it via constructor. `ChatService` loads memory before agent run and clears `AsyncLocal` in finally. **Runtime validation not performed** — 4 criteria (Aspire spans, gen_ai.input.messages, domain traces, empty-memory behavior) require AppHost running and were not tested. |
+| 2 | All 5 tasks complete. Build succeeds 0/0. `ObservationalMemoryContext` refactored from static to DI singleton per user feedback. `MemoryAIContextProvider` receives it via constructor. `ChatService` loads memory before agent run and clears `AsyncLocal` in finally. **Runtime validated**: `Memory.Load` span (2ms) confirmed in trace `67a82aa` with correct tags (`memory.user_id=debug`, counts=0). Child Redis GET span present. Agent responds normally with empty memory. Two criteria deferred to Phase 3+ (memory content in `gen_ai.input.messages`, domain agent traces) — require pre-existing memory data. |
 
 ## Prompt Reflections & Adjustments
 
@@ -205,5 +261,5 @@ Add per-user observational memory that persists durable facts across conversatio
 |----------------|------------|------------------------------|
 | OTEL should not be a separate phase; integrate into each phase | Original plan treated OTEL as cross-cutting but deferred it, preventing its use as a validation tool during development | Planning prompt should instruct: "Cross-cutting concerns like observability should be integrated into each phase, not deferred. If a concern enables validation of other phases, it must be introduced early." |
 | Phase 1 had runtime validation criteria (Redis round-trip, Aspire spans) but no code path that calls the store | Plan separated infrastructure creation from pipeline wiring, then assigned runtime criteria to the infrastructure-only phase | Every phase must include a call path for what it builds. Validation criteria must be achievable using only artifacts produced by that phase. Before finalizing a phase, check: "Can I trigger every validation criterion by running the app after only this phase's changes?" If not, move the criterion to the phase that enables it. |
-| Phase 2 marked complete with 4 of 5 runtime validation criteria unchecked — only compilation was verified | Plan lists runtime criteria (Aspire spans, gen_ai.input.messages) but doesn't instruct the implementer to start the AppHost and actually run `/debug/chat`. Criteria without execution instructions become aspirational, not actionable. | For each runtime validation criterion, include a concrete execution step: which command to run, which endpoint to hit, what to look for in the dashboard. Separate criteria into "compile-time" (checked by build) and "runtime" (checked by running the app) groups. Mark a phase complete only when ALL criteria are verified — if runtime testing is skipped, the phase status should be "code complete, runtime unverified". |
+| Phase 2 marked complete with 4 of 5 runtime validation criteria unchecked — only compilation was verified | Plan lists runtime criteria (Aspire spans, gen_ai.input.messages) but doesn't instruct the implementer to start the AppHost and actually run `/debug/chat`. Criteria without execution instructions become aspirational, not actionable. | For each runtime validation criterion, include a concrete execution step: (1) start AppHost, (2) send request to `/debug/chat` (response includes `traceId`), (3) use Aspire MCP tools (`mcp_aspire_list_traces`, `mcp_aspire_list_trace_structured_logs`) to programmatically verify spans and tags — no manual dashboard inspection needed. Separate criteria into "compile-time" (checked by `dotnet build`) and "runtime" (checked by running AppHost + `/debug/chat` + Aspire MCP). Mark a phase complete only when ALL criteria are verified — if runtime testing is skipped, the phase status should be "code complete, runtime unverified". |
 | Phase 2 plan specified `ObservationalMemoryContext` as a static class; user corrected to DI singleton | Plan defaulted to static class for `AsyncLocal` carrier without considering that DI-managed singletons are preferred in the codebase for testability and explicit dependency tracking. Static classes hide dependencies and make unit testing harder. | When the plan introduces a shared-state carrier (e.g., `AsyncLocal` wrapper, ambient context), prefer a DI-registered singleton over a static class. Static state should only be used for truly global constants (like `ActivitySource`). If the carrier is consumed by multiple services, it should be injectable so dependencies are explicit in constructors. |
