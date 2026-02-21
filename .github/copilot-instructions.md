@@ -115,7 +115,7 @@ Use the returned `traceId` to find the trace in the Aspire dashboard and validat
 Examples:
 
 - VS Code HTTP file: `src/ChatBro.Server/ChatBro.Server.http`
-- Documentation: `docs/ai/debug-chat.md`
+- Documentation: see inline comments on the `/debug/chat` endpoint in `ChatBro.Server`
 
 ### Running Tests
 
