@@ -11,6 +11,7 @@ namespace ChatBro.Server.Services.AI
         IObservationalMemoryStore memoryStore,
         ObservationalMemoryContext memoryContext,
         IObserverService observerService,
+        IReflectorService reflectorService,
         IOptions<ObservationalMemorySettings> memorySettings,
         ILogger<ChatService> logger
     )
@@ -53,6 +54,20 @@ namespace ChatBro.Server.Services.AI
                     {
                         memory = await observerService.ObserveAsync(memory);
                         await memoryStore.SaveAsync(userId, memory);
+
+                        // Trigger reflector if observation count exceeds threshold
+                        if (memory.Observations.Count >= settings.ReflectorObservationThreshold)
+                        {
+                            try
+                            {
+                                memory = await reflectorService.ReflectAsync(memory);
+                                await memoryStore.SaveAsync(userId, memory);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogWarning(ex, "Reflector failed for user {UserId}; observations preserved", userId);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {

@@ -160,7 +160,7 @@ Add per-user observational memory that persists durable facts across conversatio
 ---
 
 ### Phase 5: Reflector Service
-**Status**: 🔲 Not Started
+**Status**: ✅ Complete
 
 **Goal**: Implement the reflector that prunes/deduplicates observations when they exceed the configured threshold. Reflector execution wrapped in its own OTEL span.
 
@@ -171,28 +171,30 @@ Add per-user observational memory that persists durable facts across conversatio
 - Failures caught and logged
 
 **Validation Criteria**:
-- [ ] After observations exceed 50 entries (can temporarily lower threshold for testing), Aspire traces show a `Memory.Reflect` span
-- [ ] The `Memory.Reflect` span includes before/after observation counts as tags
-- [ ] After reflector runs, `Memory.Save` span shows reduced `memory.observations.count`
-- [ ] High-signal observations (🔴) are preserved; low-value/outdated ones are pruned (verify in Redis)
-- [ ] Reflector failure produces a failed span with exception and doesn't block the turn
+- [x] After observations exceed 50 entries (can temporarily lower threshold for testing), Aspire traces show a `Memory.Reflect` span
+- [x] The `Memory.Reflect` span includes before/after observation counts as tags
+- [x] After reflector runs, `Memory.Save` span shows reduced `memory.observations.count`
+- [x] High-signal observations (🔴) are preserved; low-value/outdated ones are pruned (verify in Redis)
+- [ ] Reflector failure produces a failed span with exception and doesn't block the turn *(deferred — requires manual LLM failure injection)*
 
 **Tasks**:
-- [ ] Create [src/ChatBro.Server/contexts/memory/reflector.md](src/ChatBro.Server/contexts/memory/reflector.md) — prompt instructing the LLM to: deduplicate observations, remove outdated facts, preserve high-importance (🔴) items, consolidate related observations, output cleaned list
-- [ ] Create `IReflectorService` interface in [src/ChatBro.Server/Services/AI/Memory/IReflectorService.cs](src/ChatBro.Server/Services/AI/Memory/IReflectorService.cs) with `ReflectAsync(UserMemory memory, CancellationToken)` returning updated `UserMemory`
-- [ ] Create `ReflectorService` in [src/ChatBro.Server/Services/AI/Memory/ReflectorService.cs](src/ChatBro.Server/Services/AI/Memory/ReflectorService.cs) — wrap in `MemoryActivitySource.Source.StartActivity("Memory.Reflect")`. Load reflector prompt, send observations to LLM, replace observations with pruned result. Set span tags for before/after counts. Use `ActivityExtensions.SetException()` on failure. Uses `IChatClient` with `.UseOpenTelemetry()`
-- [ ] Register `IReflectorService` in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs)
-- [ ] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs), after observer: check if `memory.Observations.Count >= reflectorThreshold`, if so call `reflectorService.ReflectAsync(memory)` inside try/catch, save result. On failure, log and continue
+- [x] Create [src/ChatBro.Server/contexts/memory/reflector.md](src/ChatBro.Server/contexts/memory/reflector.md) — prompt instructing the LLM to: deduplicate observations, remove outdated facts, preserve high-importance (🔴) items, consolidate related observations, output cleaned list
+- [x] Create `IReflectorService` interface in [src/ChatBro.Server/Services/AI/Memory/IReflectorService.cs](src/ChatBro.Server/Services/AI/Memory/IReflectorService.cs) with `ReflectAsync(UserMemory memory, CancellationToken)` returning updated `UserMemory`
+- [x] Create `ReflectorService` in [src/ChatBro.Server/Services/AI/Memory/ReflectorService.cs](src/ChatBro.Server/Services/AI/Memory/ReflectorService.cs) — wrap in `MemoryActivitySource.Source.StartActivity("Memory.Reflect")`. Load reflector prompt, send observations to LLM, replace observations with pruned result. Set span tags for before/after counts. Use `ActivityExtensions.SetException()` on failure. Uses `IChatClient` with `.UseOpenTelemetry()`
+- [x] Register `IReflectorService` in [src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs](src/ChatBro.Server/DependencyInjection/AgentsAiExtensions.cs)
+- [x] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs), after observer: check if `memory.Observations.Count >= reflectorThreshold`, if so call `reflectorService.ReflectAsync(memory)` inside try/catch, save result. On failure, log and continue
 
 **Runtime Verification**:
-- [ ] Temporarily lower `ObserverRawMessageThreshold` to 2 and `ReflectorObservationThreshold` to 3 in appsettings for practical testing
-- [ ] Start AppHost (or restart if code changed), reset memory for `debug` user
-- [ ] Send enough messages to trigger observer multiple times until observations exceed reflector threshold
-- [ ] On the triggering trace, use `mcp_aspire_list_trace_structured_logs(traceId)` to verify:
-  - [ ] `Memory.Reflect` span exists with before/after observation counts as tags
-  - [ ] Final `Memory.Save` span shows reduced `memory.observations.count`
-- [ ] Restore thresholds to defaults (20 / 50)
-- [ ] Stop AppHost
+- [x] Temporarily lowered `ObserverRawMessageThreshold` to 2 and `ReflectorObservationThreshold` to 3 in appsettings for practical testing
+- [x] Started AppHost, confirmed all resources running via `mcp_aspire_list_resources`
+- [x] Sent 2 messages with `userId: reflector-test-1` (fresh user with rich personal details)
+- [x] On 2nd message trace (`8cb9519`), verified via `mcp_aspire_list_traces`:
+  - [x] `Memory.Observe` span: `input_raw_messages=2`, `output_observations=8`
+  - [x] `Memory.Reflect` span exists with `memory.reflector.before_observations=8`, `memory.reflector.after_observations=5` (37.5% reduction)
+  - [x] Final `Memory.Save` span shows `memory.observations.count=5`, `memory.raw_messages.count=0`
+  - [x] High-signal 🔴 observations preserved (name/location/cats/food); related facts consolidated (name+location+job merged into one)
+- [x] Restored thresholds to defaults (20 / 50)
+- [x] Stopped AppHost
 
 ---
 
@@ -260,6 +262,7 @@ Add per-user observational memory that persists durable facts across conversatio
 | 2 | All 5 tasks complete. Build succeeds 0/0. `ObservationalMemoryContext` refactored from static to DI singleton per user feedback. `MemoryAIContextProvider` receives it via constructor. `ChatService` loads memory before agent run and clears `AsyncLocal` in finally. **Runtime validated**: `Memory.Load` span (2ms) confirmed in trace `67a82aa` with correct tags (`memory.user_id=debug`, counts=0). Child Redis GET span present. Agent responds normally with empty memory. Two criteria moved to Phase 4: memory content in `gen_ai.input.messages` and domain agent traces require pre-existing observation data that only the observer produces. |
 | 3 | Single code change: 7 lines added to `ChatService.GetChatResponseAsync` after agent run — creates `RawMessage`, appends to memory, calls `SaveAsync`. Build 0/0. **Runtime validated**: 3 messages sent with `userId: memory-test`. Traces confirm `Memory.Load` + `Memory.Save` on every request with `raw_messages.count` incrementing 0→1→2→3. |
 | 4 | Created 4 artifacts: `observer.md` (LLM prompt), `IObserverService`, `ObserverService` (LLM call + JSON parse + OTEL span), DI registration. Modified `ChatService`: added `IObserverService` + `IOptions<ObservationalMemorySettings>` to constructor, threshold check after raw message save. Build 0/0. **Runtime validated**: threshold lowered to 3, 3 messages triggered observer extracting 6 observations from 3 raw messages. 4th message confirmed agent recalls observations. `gen_ai.input.messages` contains `Observational Memory` section. Two criteria deferred: LLM failure resilience (manual test) and domain agent memory traces (needs domain-routed request). |
+| 5 | Created 4 artifacts: `reflector.md` (LLM prompt for pruning/dedup), `IReflectorService`, `ReflectorService` (same `IChatClient` pattern as ObserverService), DI registration. Modified `ChatService`: added `IReflectorService` to constructor, nested reflector trigger inside observer block with try/catch. Build 0/0. **Runtime validated**: thresholds lowered to 2/3, 2 messages triggered observer (8 observations) which exceeded reflector threshold (3). Reflector consolidated 8→5 observations (37.5% reduction). Trace `8cb9519` confirmed full pipeline: `Memory.Save`(raw=2) → `Memory.Observe`(in=2,out=8) → `Memory.Save`(obs=8) → `Memory.Reflect`(before=8,after=5) → `Memory.Save`(obs=5). High-signal 🔴 preserved; name+location+job consolidated into single observation. |
 
 ## Prompt Reflections & Adjustments
 
