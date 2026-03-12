@@ -96,5 +96,13 @@ namespace ChatBro.Server.Services.AI
             var domainReset = await domainToolingBuilder.ResetAsync(userId);
             return orchestratorReset || domainReset;
         }
+
+        public async Task<bool> HardResetChatAsync(string userId)
+        {
+            logger.LogInformation("Hard resetting chat and memory for user {UserId}", userId);
+            var chatReset = await ResetChatAsync(userId);
+            await memoryStore.DeleteAsync(userId);
+            return chatReset;
+        }
     }
 }

@@ -198,32 +198,44 @@ Add per-user observational memory that persists durable facts across conversatio
 
 ---
 
-### Phase 6: Reset Integration
-**Status**: 🔲 Not Started
+### Phase 6: Hard Reset Command (`/reset-hard`)
+**Status**: ✅ Complete
 
-**Goal**: Ensure `/reset` clears observational memory alongside chat threads. The `Memory.Delete` span confirms cleanup.
+**Goal**: Add a `/reset-hard` command that clears both message history AND observational memory. The existing `/reset` command keeps its current behavior (clears message history only). The `Memory.Delete` span confirms memory cleanup.
 
 **Required Results**:
-- `ResetChatAsync` deletes the user's memory from Redis (with OTEL span)
-- User experiences a fully fresh assistant after reset
+- New `HardResetChatAsync` method in `ChatService` that calls existing reset logic + `memoryStore.DeleteAsync`
+- New `ResetHardCommand` Telegram command implementing `ITelegramCommand`
+- New `POST /debug/reset-hard` endpoint for debug testing
+- `/reset` remains unchanged — only clears chat threads
 
 **Validation Criteria**:
-- [ ] After `/reset`, Aspire trace shows a `Memory.Delete` span
-- [ ] Redis key `chatbro:memory:{userId}` is deleted (verify in RedisInsight)
-- [ ] Subsequent conversation shows no trace of prior observations — `Memory.Load` span shows zero counts
+- [x] `/reset` does NOT emit a `Memory.Delete` span (existing behavior preserved)
+- [x] `/reset-hard` emits a `Memory.Delete` span with `memory.user_id`
+- [x] After `/reset-hard`, Redis key `chatbro:memory:{userId}` is deleted
+- [x] After `/reset-hard`, subsequent `Memory.Load` span shows zero counts for both observations and raw messages
+- [x] After `/reset` (without -hard), memory is still present — `Memory.Load` shows previous counts
 
 **Tasks**:
-- [ ] Inject `IObservationalMemoryStore` into `ChatService` constructor (may already be done from Phase 2)
-- [ ] In [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs) `ResetChatAsync`: add call to `IObservationalMemoryStore.DeleteAsync(userId)` alongside existing thread deletion (this already emits a `Memory.Delete` span from Phase 1)
+- [x] Add `HardResetChatAsync(string userId)` to [src/ChatBro.Server/Services/AI/ChatService.cs](src/ChatBro.Server/Services/AI/ChatService.cs) — calls `ResetChatAsync(userId)` then `memoryStore.DeleteAsync(userId)` (`IObservationalMemoryStore` already injected)
+- [x] Create [src/ChatBro.Server/Services/Telegram/ResetHardCommand.cs](src/ChatBro.Server/Services/Telegram/ResetHardCommand.cs) implementing `ITelegramCommand` with `Command => "reset_hard"` — calls `chatService.HardResetChatAsync(userId)`, returns `🧹🧠✅`
+- [x] Register `ResetHardCommand` in [src/ChatBro.Server/DependencyInjection/TelegramBotServiceExtensions.cs](src/ChatBro.Server/DependencyInjection/TelegramBotServiceExtensions.cs)
+- [x] Add `POST /debug/reset-hard` endpoint in [src/ChatBro.Server/Api/DebugApiExtensions.cs](src/ChatBro.Server/Api/DebugApiExtensions.cs) — calls `chatService.HardResetChatAsync(userId)`, returns trace info
+- [x] Update existing tests in [tests/ChatBro.TelegramBotService.Tests/Services/ChatServiceTests.cs](tests/ChatBro.TelegramBotService.Tests/Services/ChatServiceTests.cs) to compile with new `ChatService` constructor signature, and add test for `HardResetChatAsync`
 
 **Runtime Verification**:
-- [ ] Start AppHost (or restart if code changed)
-- [ ] Send a message via `POST /debug/chat` with `userId: "debug"` to ensure memory exists
-- [ ] Send `/reset` message (or call reset endpoint) for `userId: "debug"`
-- [ ] Use `mcp_aspire_list_traces` + `mcp_aspire_list_trace_structured_logs(traceId)` on the reset trace to verify:
-  - [ ] `Memory.Delete` span exists with `memory.user_id=debug`
-- [ ] Send another message and verify `Memory.Load` span shows `memory.observations.count=0`, `memory.raw_messages.count=0`
-- [ ] Stop AppHost
+- [x] Temporarily lowered `ObserverRawMessageThreshold` to 2 for practical testing
+- [x] Started AppHost, confirmed all resources running
+- [x] Sent 2 messages with `userId: reset-test-1` — observer triggered, 5 observations created
+- [x] Sent additional messages (soft reset via agent) — verified no `Memory.Delete` span in any chat trace
+- [x] Verified `Memory.Load` still shows `observations.count=5` after soft interactions (memory preserved)
+- [x] Called `POST /debug/reset-hard` with `userId: reset-test-1` — trace confirmed:
+  - [x] `Memory.Delete` span with `memory.user_id=reset-test-1`, `observations.count=0`, `raw_messages.count=0`
+- [x] Sent new message after hard reset — agent says "I don't have a built-in profile of you"
+  - [x] `Memory.Load` span shows `observations.count=0`, `raw_messages.count=0`
+- [x] Restored thresholds to defaults (20 / 50)
+- [x] Stopped AppHost
+- [x] All 6 unit tests pass (2 existing + 1 reset-preserves-memory + 2 hard-reset + 1 hard-reset-no-threads)
 
 ---
 
@@ -240,14 +252,16 @@ Add per-user observational memory that persists durable facts across conversatio
 **Validation Criteria**:
 - [ ] After 20+ turns via `/debug/chat`, observations are generated — confirmed via `Memory.Observe` spans and Redis content
 - [ ] After 50+ observations (use lowered threshold for practical testing), reflector prunes — confirmed via `Memory.Reflect` spans
-- [ ] `/reset` clears everything — `Memory.Delete` span, then next turn shows `Memory.Load` with zero counts
+- [ ] `/reset-hard` clears everything — `Memory.Delete` span, then next turn shows `Memory.Load` with zero counts
+- [ ] `/reset` clears only chat threads, memory persists — next turn still shows previous observation counts
 - [ ] Tool-heavy sessions (e.g., restaurant queries) don't cause runaway prompt growth; key facts persist via observations
 - [ ] Full Aspire dashboard trace shows the lifecycle: `Memory.Load` → agent run → `Memory.Save` → (optional) `Memory.Observe` → `Memory.Save` → (optional) `Memory.Reflect` → `Memory.Save`
 
 **Tasks**:
 - [ ] Test via [src/ChatBro.Server/ChatBro.Server.http](src/ChatBro.Server/ChatBro.Server.http) — send 25+ messages with varied topics, verify observations appear
 - [ ] Verify via `mcp_aspire_list_traces` + `mcp_aspire_list_trace_structured_logs` that the full span tree is correct and all tags populate
-- [ ] Test `/reset` clears the memory key — verify via `Memory.Delete` span and subsequent `Memory.Load` showing zero counts
+- [ ] Test `/reset-hard` clears the memory key — verify via `Memory.Delete` span and subsequent `Memory.Load` showing zero counts
+- [ ] Test `/reset` does NOT clear memory — verify no `Memory.Delete` span, subsequent `Memory.Load` retains previous counts
 - [ ] Create [docs/ai/observational-memory.md](docs/ai/observational-memory.md) documenting the architecture (memory model, observer/reflector flow, configuration, prompt files, OTEL span reference)
 - [ ] Update orchestrator prompt in [src/ChatBro.Server/contexts/orchestrator.md](src/ChatBro.Server/contexts/orchestrator.md) if needed — add a note that the agent has access to observational memory
 - [ ] Stop AppHost when all verification is complete
@@ -263,6 +277,7 @@ Add per-user observational memory that persists durable facts across conversatio
 | 3 | Single code change: 7 lines added to `ChatService.GetChatResponseAsync` after agent run — creates `RawMessage`, appends to memory, calls `SaveAsync`. Build 0/0. **Runtime validated**: 3 messages sent with `userId: memory-test`. Traces confirm `Memory.Load` + `Memory.Save` on every request with `raw_messages.count` incrementing 0→1→2→3. |
 | 4 | Created 4 artifacts: `observer.md` (LLM prompt), `IObserverService`, `ObserverService` (LLM call + JSON parse + OTEL span), DI registration. Modified `ChatService`: added `IObserverService` + `IOptions<ObservationalMemorySettings>` to constructor, threshold check after raw message save. Build 0/0. **Runtime validated**: threshold lowered to 3, 3 messages triggered observer extracting 6 observations from 3 raw messages. 4th message confirmed agent recalls observations. `gen_ai.input.messages` contains `Observational Memory` section. Two criteria deferred: LLM failure resilience (manual test) and domain agent memory traces (needs domain-routed request). |
 | 5 | Created 4 artifacts: `reflector.md` (LLM prompt for pruning/dedup), `IReflectorService`, `ReflectorService` (same `IChatClient` pattern as ObserverService), DI registration. Modified `ChatService`: added `IReflectorService` to constructor, nested reflector trigger inside observer block with try/catch. Build 0/0. **Runtime validated**: thresholds lowered to 2/3, 2 messages triggered observer (8 observations) which exceeded reflector threshold (3). Reflector consolidated 8→5 observations (37.5% reduction). Trace `8cb9519` confirmed full pipeline: `Memory.Save`(raw=2) → `Memory.Observe`(in=2,out=8) → `Memory.Save`(obs=8) → `Memory.Reflect`(before=8,after=5) → `Memory.Save`(obs=5). High-signal 🔴 preserved; name+location+job consolidated into single observation. |
+| 6 | Phase redesigned per user request: `/reset` keeps current behavior (chat threads only), new `/reset-hard` clears both threads and memory. Created `HardResetChatAsync` in `ChatService` (delegates to `ResetChatAsync` + `memoryStore.DeleteAsync`), `ResetHardCommand` for Telegram, `POST /debug/reset-hard` debug endpoint, registered in DI. Updated existing unit tests to match new constructor (added fakes for memory store, observer, reflector), added 4 new tests (reset-preserves-memory, hard-reset-deletes-memory, hard-reset-no-threads). Build 0/0, 6/6 tests pass. **Runtime validated**: soft interactions show no `Memory.Delete` spans and `observations.count=5` preserved; `POST /debug/reset-hard` produces `Memory.Delete` span with zero counts; post-reset `Memory.Load` confirms `observations.count=0`. Agent confirms no memory of user after hard reset. |
 
 ## Prompt Reflections & Adjustments
 
