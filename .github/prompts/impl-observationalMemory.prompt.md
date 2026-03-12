@@ -239,7 +239,38 @@ Add per-user observational memory that persists durable facts across conversatio
 
 ---
 
-### Phase 7: End-to-End Validation and Documentation
+### Phase 7: Show Memory Command (`/show_memory`)
+**Status**: � In Progress
+
+**Goal**: Add a `/show_memory` command that responds with all records currently stored in the user's observational memory — observations and raw (unprocessed) messages. This gives users visibility into what the system remembers about them.
+
+**Required Results**:
+- New `ShowMemoryCommand` Telegram command implementing `ITelegramCommand`
+- Command loads memory from `IObservationalMemoryStore` and formats it as a readable text response
+- Returns a message listing all observations (with importance and timestamp) and raw messages count
+- If no memory exists, returns a friendly "no memory" message
+- Accessible via `POST /debug/command/show_memory` debug endpoint (already handled by generic `/debug/command/{name}` routing)
+
+**Validation Criteria**:
+- [x] Project compiles without errors
+- [ ] `/show_memory` with existing memory returns formatted observations list
+- [ ] `/show_memory` with no memory returns a "no memory" message
+- [ ] Command is accessible via `POST /debug/command/show_memory` debug endpoint
+
+**Tasks**:
+- [x] Create [src/ChatBro.Server/Services/Telegram/ShowMemoryCommand.cs](src/ChatBro.Server/Services/Telegram/ShowMemoryCommand.cs) implementing `ITelegramCommand` with `Command => "show_memory"` — loads memory via `IObservationalMemoryStore.LoadAsync(userId)`, formats observations as a readable list (importance emoji, timestamp, text), appends raw messages count, returns formatted string. If memory is empty (no observations and no raw messages), return "No observational memory stored."
+- [x] Register `ShowMemoryCommand` in [src/ChatBro.Server/DependencyInjection/TelegramBotServiceExtensions.cs](src/ChatBro.Server/DependencyInjection/TelegramBotServiceExtensions.cs)
+
+**Runtime Verification**:
+- [ ] Start AppHost (or restart if running)
+- [ ] Send a few messages via `POST /debug/chat` with a test user to build up some memory (lower thresholds if needed)
+- [ ] Call `POST /debug/command/show_memory` with the same userId — verify response contains formatted observations
+- [ ] Call `POST /debug/command/show_memory` with a fresh userId that has no memory — verify "no memory" response
+- [ ] Stop AppHost (or keep running for Phase 8)
+
+---
+
+### Phase 8: End-to-End Validation and Documentation
 **Status**: 🔲 Not Started
 
 **Goal**: Verify the complete feature works end-to-end against all acceptance criteria from the issue, and document the implementation.
@@ -254,6 +285,7 @@ Add per-user observational memory that persists durable facts across conversatio
 - [ ] After 50+ observations (use lowered threshold for practical testing), reflector prunes — confirmed via `Memory.Reflect` spans
 - [ ] `/reset-hard` clears everything — `Memory.Delete` span, then next turn shows `Memory.Load` with zero counts
 - [ ] `/reset` clears only chat threads, memory persists — next turn still shows previous observation counts
+- [ ] `/show_memory` displays current observations and raw message count
 - [ ] Tool-heavy sessions (e.g., restaurant queries) don't cause runaway prompt growth; key facts persist via observations
 - [ ] Full Aspire dashboard trace shows the lifecycle: `Memory.Load` → agent run → `Memory.Save` → (optional) `Memory.Observe` → `Memory.Save` → (optional) `Memory.Reflect` → `Memory.Save`
 
@@ -262,6 +294,7 @@ Add per-user observational memory that persists durable facts across conversatio
 - [ ] Verify via `mcp_aspire_list_traces` + `mcp_aspire_list_trace_structured_logs` that the full span tree is correct and all tags populate
 - [ ] Test `/reset-hard` clears the memory key — verify via `Memory.Delete` span and subsequent `Memory.Load` showing zero counts
 - [ ] Test `/reset` does NOT clear memory — verify no `Memory.Delete` span, subsequent `Memory.Load` retains previous counts
+- [ ] Test `/show_memory` returns formatted memory content — verify via `POST /debug/command/show_memory`
 - [ ] Create [docs/ai/observational-memory.md](docs/ai/observational-memory.md) documenting the architecture (memory model, observer/reflector flow, configuration, prompt files, OTEL span reference)
 - [ ] Update orchestrator prompt in [src/ChatBro.Server/contexts/orchestrator.md](src/ChatBro.Server/contexts/orchestrator.md) if needed — add a note that the agent has access to observational memory
 - [ ] Stop AppHost when all verification is complete
