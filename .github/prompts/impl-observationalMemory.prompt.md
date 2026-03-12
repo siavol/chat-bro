@@ -240,7 +240,7 @@ Add per-user observational memory that persists durable facts across conversatio
 ---
 
 ### Phase 7: Show Memory Command (`/show_memory`)
-**Status**: � In Progress
+**Status**: ✅ Complete
 
 **Goal**: Add a `/show_memory` command that responds with all records currently stored in the user's observational memory — observations and raw (unprocessed) messages. This gives users visibility into what the system remembers about them.
 
@@ -253,20 +253,23 @@ Add per-user observational memory that persists durable facts across conversatio
 
 **Validation Criteria**:
 - [x] Project compiles without errors
-- [ ] `/show_memory` with existing memory returns formatted observations list
-- [ ] `/show_memory` with no memory returns a "no memory" message
-- [ ] Command is accessible via `POST /debug/command/show_memory` debug endpoint
+- [x] `/show_memory` with existing memory returns formatted observations list
+- [x] `/show_memory` with no memory returns a "no memory" message
+- [x] Command is accessible via `POST /debug/command/show_memory` debug endpoint
 
 **Tasks**:
 - [x] Create [src/ChatBro.Server/Services/Telegram/ShowMemoryCommand.cs](src/ChatBro.Server/Services/Telegram/ShowMemoryCommand.cs) implementing `ITelegramCommand` with `Command => "show_memory"` — loads memory via `IObservationalMemoryStore.LoadAsync(userId)`, formats observations as a readable list (importance emoji, timestamp, text), appends raw messages count, returns formatted string. If memory is empty (no observations and no raw messages), return "No observational memory stored."
 - [x] Register `ShowMemoryCommand` in [src/ChatBro.Server/DependencyInjection/TelegramBotServiceExtensions.cs](src/ChatBro.Server/DependencyInjection/TelegramBotServiceExtensions.cs)
 
 **Runtime Verification**:
-- [ ] Start AppHost (or restart if running)
-- [ ] Send a few messages via `POST /debug/chat` with a test user to build up some memory (lower thresholds if needed)
-- [ ] Call `POST /debug/command/show_memory` with the same userId — verify response contains formatted observations
-- [ ] Call `POST /debug/command/show_memory` with a fresh userId that has no memory — verify "no memory" response
-- [ ] Stop AppHost (or keep running for Phase 8)
+- [x] Temporarily lowered `ObserverRawMessageThreshold` to 2 for practical testing
+- [x] Started AppHost, confirmed all resources running via `mcp_aspire_list_resources`
+- [x] Sent 2 messages with `userId: showmem-test-1` (personal details about Sarah, Helsinki, dogs, Nokia, vegetarian)
+- [x] Observer triggered on 2nd message, produced 8 observations
+- [x] Called `POST /debug/command/show_memory` with `userId: showmem-test-1` — response contains all 8 observations formatted with emoji, date, and text
+- [x] Called `POST /debug/command/show_memory` with `userId: fresh-user-no-memory` — response: "No observational memory stored."
+- [x] Restored thresholds to defaults (20 / 50)
+- [ ] Stop AppHost *(kept running for Phase 8)*
 
 ---
 
@@ -310,6 +313,7 @@ Add per-user observational memory that persists durable facts across conversatio
 | 3 | Single code change: 7 lines added to `ChatService.GetChatResponseAsync` after agent run — creates `RawMessage`, appends to memory, calls `SaveAsync`. Build 0/0. **Runtime validated**: 3 messages sent with `userId: memory-test`. Traces confirm `Memory.Load` + `Memory.Save` on every request with `raw_messages.count` incrementing 0→1→2→3. |
 | 4 | Created 4 artifacts: `observer.md` (LLM prompt), `IObserverService`, `ObserverService` (LLM call + JSON parse + OTEL span), DI registration. Modified `ChatService`: added `IObserverService` + `IOptions<ObservationalMemorySettings>` to constructor, threshold check after raw message save. Build 0/0. **Runtime validated**: threshold lowered to 3, 3 messages triggered observer extracting 6 observations from 3 raw messages. 4th message confirmed agent recalls observations. `gen_ai.input.messages` contains `Observational Memory` section. Two criteria deferred: LLM failure resilience (manual test) and domain agent memory traces (needs domain-routed request). |
 | 5 | Created 4 artifacts: `reflector.md` (LLM prompt for pruning/dedup), `IReflectorService`, `ReflectorService` (same `IChatClient` pattern as ObserverService), DI registration. Modified `ChatService`: added `IReflectorService` to constructor, nested reflector trigger inside observer block with try/catch. Build 0/0. **Runtime validated**: thresholds lowered to 2/3, 2 messages triggered observer (8 observations) which exceeded reflector threshold (3). Reflector consolidated 8→5 observations (37.5% reduction). Trace `8cb9519` confirmed full pipeline: `Memory.Save`(raw=2) → `Memory.Observe`(in=2,out=8) → `Memory.Save`(obs=8) → `Memory.Reflect`(before=8,after=5) → `Memory.Save`(obs=5). High-signal 🔴 preserved; name+location+job consolidated into single observation. |
+| 7 | Created `ShowMemoryCommand` implementing `ITelegramCommand`, registered in DI. Build 0/0. **Runtime validated**: `POST /debug/command/show_memory` with `userId: fresh-user-no-memory` returns "No observational memory stored."; with `userId: showmem-test-1` (2 messages, observer triggered, 8 observations) returns formatted list with emoji/date/text for all 8 observations. Generic `/debug/command/{name}` routing works correctly for this command. |
 | 6 | Phase redesigned per user request: `/reset` keeps current behavior (chat threads only), new `/reset-hard` clears both threads and memory. Created `HardResetChatAsync` in `ChatService` (delegates to `ResetChatAsync` + `memoryStore.DeleteAsync`), `ResetHardCommand` for Telegram, `POST /debug/reset-hard` debug endpoint, registered in DI. Updated existing unit tests to match new constructor (added fakes for memory store, observer, reflector), added 4 new tests (reset-preserves-memory, hard-reset-deletes-memory, hard-reset-no-threads). Build 0/0, 6/6 tests pass. **Runtime validated**: soft interactions show no `Memory.Delete` spans and `observations.count=5` preserved; `POST /debug/reset-hard` produces `Memory.Delete` span with zero counts; post-reset `Memory.Load` confirms `observations.count=0`. Agent confirms no memory of user after hard reset. |
 
 ## Prompt Reflections & Adjustments
