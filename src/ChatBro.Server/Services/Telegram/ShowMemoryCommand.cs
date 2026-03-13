@@ -20,24 +20,17 @@ public class ShowMemoryCommand : ITelegramCommand
 
         if (memory.Observations.Count > 0)
         {
-            sb.AppendLine($"📝 **Observations** ({memory.Observations.Count}):");
+            sb.AppendLine($"📝 Observations ({memory.Observations.Count}):");
             foreach (var obs in memory.Observations)
             {
-                var emoji = obs.Importance switch
-                {
-                    "high" => "🔴",
-                    "medium" => "🟡",
-                    "low" => "🟢",
-                    _ => "⚪"
-                };
-                sb.AppendLine($"  {emoji} [{obs.Timestamp:yyyy-MM-dd}] {obs.Text}");
+                sb.AppendLine($"  {obs.Importance} [{obs.Timestamp:yyyy-MM-dd HH:mm}] {obs.Text}");
             }
         }
 
         if (memory.RawMessages.Count > 0)
         {
             if (sb.Length > 0) sb.AppendLine();
-            sb.AppendLine($"💬 **Unprocessed messages**: {memory.RawMessages.Count}");
+            sb.AppendLine($"💬 Unprocessed messages: {memory.RawMessages.Count}");
         }
 
         return sb.ToString().TrimEnd();
