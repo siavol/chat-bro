@@ -177,20 +177,14 @@ public sealed class AIAgentProvider(
         };
 
 
-        return CreateAgent(agentOptions, maxIterationsPerRequest: 5);
+        return CreateAgent(agentOptions);
     }
 
-    private AIAgent CreateAgent(ChatClientAgentOptions agentOptions, int maxIterationsPerRequest = 10)
+    private AIAgent CreateAgent(ChatClientAgentOptions agentOptions)
     {
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         var chatClient = new ChatClientBuilder(openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient())
-            .Use(inner =>
-            {
-                var client = new FunctionInvokingChatClient(inner, loggerFactory, serviceProvider);
-                client.MaximumIterationsPerRequest = maxIterationsPerRequest;
-                return client;
-            })
             .UseOpenTelemetry(configure: cfg => cfg.EnableSensitiveData = true)
             .Build();
         return new ChatClientAgent(
