@@ -185,8 +185,12 @@ public sealed class AIAgentProvider(
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         var chatClient = new ChatClientBuilder(openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient())
-            .UseFunctionInvocation(loggerFactory, configure: client =>
-                client.MaximumIterationsPerRequest = maxIterationsPerRequest)
+            .Use(inner =>
+            {
+                var client = new FunctionInvokingChatClient(inner, loggerFactory, serviceProvider);
+                client.MaximumIterationsPerRequest = maxIterationsPerRequest;
+                return client;
+            })
             .UseOpenTelemetry(configure: cfg => cfg.EnableSensitiveData = true)
             .Build();
         return new ChatClientAgent(
