@@ -5,11 +5,6 @@ namespace ChatBro.Server.Options;
 public class ObservationalMemorySettings
 {
     /// <summary>
-    /// Whether observational memory is enabled.
-    /// </summary>
-    public bool Enabled { get; init; } = true;
-
-    /// <summary>
     /// Number of raw messages that triggers the observer to compress them into observations.
     /// </summary>
     [Range(1, int.MaxValue)]

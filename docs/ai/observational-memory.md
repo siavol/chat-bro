@@ -73,7 +73,6 @@ Settings in `appsettings.json` under `Chat:ObservationalMemory`:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `Enabled` | `true` | Enable/disable observational memory |
 | `ObserverRawMessageThreshold` | `20` | Raw message count before observer compresses them |
 | `ReflectorObservationThreshold` | `50` | Observation count before reflector prunes them |
 

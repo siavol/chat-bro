@@ -48,7 +48,7 @@ namespace ChatBro.Server.Services.AI
 
                 // Trigger observer if raw message count exceeds threshold
                 var settings = memorySettings.Value;
-                if (settings.Enabled && memory.RawMessages.Count >= settings.ObserverRawMessageThreshold)
+                if (memory.RawMessages.Count >= settings.ObserverRawMessageThreshold)
                 {
                     try
                     {
