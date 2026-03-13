@@ -1,5 +1,6 @@
 using ChatBro.Server.Options;
 using ChatBro.RestaurantsService.KernelFunction;
+using ChatBro.Server.Services.AI.Memory;
 using ChatBro.Server.Services.AI.Plugins;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -20,6 +21,8 @@ public sealed class AIAgentProvider(
 {
     private readonly ChatSettings _chatSettings = chatSettings.Value;
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly MemoryAIContextProvider _memoryContextProvider =
+        new(serviceProvider.GetRequiredService<ObservationalMemoryContext>());
 
     private AIAgent? _orchestratorAgent;
     private IReadOnlyList<DomainAgentRegistration>? _domainAgents;
@@ -94,7 +97,8 @@ public sealed class AIAgentProvider(
             Description = domainSettings.Description,
             AIContextProviders =
             [
-                new RestaurantsAgentAIContextProvider(domainSettings.Key, chatClient, loggerFactory)
+                new RestaurantsAgentAIContextProvider(domainSettings.Key, chatClient, loggerFactory),
+                _memoryContextProvider
             ],
             ChatHistoryProvider = new InMemoryChatHistoryProvider(
                 new InMemoryChatHistoryProviderOptions
@@ -125,7 +129,8 @@ public sealed class AIAgentProvider(
             Description = domainSettings.Description,
             AIContextProviders =
             [
-                new GenericDomainAgentAIContextProvider(domainSettings.Key, loggerFactory)
+                new GenericDomainAgentAIContextProvider(domainSettings.Key, loggerFactory),
+                _memoryContextProvider
             ],
             ChatHistoryProvider = new InMemoryChatHistoryProvider(
                 new InMemoryChatHistoryProviderOptions
@@ -157,7 +162,8 @@ public sealed class AIAgentProvider(
             Description = orchestrator.Description,
             AIContextProviders =
             [
-                new OrchestratorAIContextProvider(_chatSettings.Domains.All(), loggerFactory)
+                new OrchestratorAIContextProvider(_chatSettings.Domains.All(), loggerFactory),
+                _memoryContextProvider
             ],
             ChatHistoryProvider = new InMemoryChatHistoryProvider(
                 new InMemoryChatHistoryProviderOptions
@@ -171,14 +177,16 @@ public sealed class AIAgentProvider(
         };
 
 
-        return CreateAgent(agentOptions);
+        return CreateAgent(agentOptions, maxIterationsPerRequest: 5);
     }
 
-    private AIAgent CreateAgent(ChatClientAgentOptions agentOptions)
+    private AIAgent CreateAgent(ChatClientAgentOptions agentOptions, int maxIterationsPerRequest = 10)
     {
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         var chatClient = new ChatClientBuilder(openAiClient.GetChatClient(_chatSettings.AiModel).AsIChatClient())
+            .UseFunctionInvocation(loggerFactory, configure: client =>
+                client.MaximumIterationsPerRequest = maxIterationsPerRequest)
             .UseOpenTelemetry(configure: cfg => cfg.EnableSensitiveData = true)
             .Build();
         return new ChatClientAgent(
